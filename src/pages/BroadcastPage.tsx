@@ -169,6 +169,15 @@ const BroadcastPage = () => {
         }
       }
 
+      // Update broadcast status and sent count
+      await supabase
+        .from("broadcasts")
+        .update({
+          status: sentCount > 0 ? "sent" : "failed",
+          sent_count: sentCount,
+        })
+        .eq("id", broadcast.id);
+
       toast.success(`Enviado para ${sentCount}/${selectedGroups.length} grupos!`);
       setSelectedGroups([]);
       setMessage("");
