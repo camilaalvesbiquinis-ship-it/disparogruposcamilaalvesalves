@@ -12,6 +12,7 @@ import { useConnections } from "@/hooks/useConnections";
 import { useAddBroadcast } from "@/hooks/useBroadcasts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import MessagePreview from "@/components/MessagePreview";
 
 const contentTypes = [
   { id: "text", label: "Texto", icon: FileText },
@@ -283,6 +284,12 @@ const BroadcastPage = () => {
                 ))}
               </div>
             </div>
+
+            <MessagePreview
+              message={message}
+              previewUrl={previewUrl}
+              mentionAll={mentionAll}
+            />
 
             <div className="card-glow rounded-xl p-5 space-y-4">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
