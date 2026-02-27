@@ -2,8 +2,10 @@ import { AppLayout } from "@/components/AppLayout";
 import { useBroadcasts } from "@/hooks/useBroadcasts";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Mail, Search, ImageIcon, Video, FileText, Link2, Clock, CheckCircle2, XCircle, Loader2, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Mail, Search, ImageIcon, Video, FileText, Link2, Clock, CheckCircle2, XCircle, Loader2, Send, Copy } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -25,6 +27,18 @@ const typeIcons: Record<string, React.ElementType> = {
 const MessagesPage = () => {
   const { data: broadcasts = [], isLoading } = useBroadcasts();
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+
+  const cloneBroadcast = (b: typeof broadcasts[0]) => {
+    const params = new URLSearchParams();
+    if (b.content) params.set("message", b.content);
+    if (b.content_type) params.set("contentType", b.content_type);
+    if (b.media_url) params.set("mediaUrl", b.media_url);
+    if (b.mention_mode) params.set("mentionMode", b.mention_mode);
+    if (b.delay_seconds) params.set("delay", String(b.delay_seconds));
+    if (b.connection_id) params.set("connectionId", b.connection_id);
+    navigate(`/broadcast?${params.toString()}`);
+  };
 
   const filtered = broadcasts.filter(
     (b) =>
@@ -110,6 +124,17 @@ const MessagesPage = () => {
                       </span>
                     </div>
                   </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 border-border text-muted-foreground hover:text-primary hover:border-primary/30"
+                    onClick={() => cloneBroadcast(b)}
+                    title="Clonar mensagem"
+                  >
+                    <Copy className="h-3.5 w-3.5 mr-1.5" />
+                    Clonar
+                  </Button>
                 </div>
               );
             })}
