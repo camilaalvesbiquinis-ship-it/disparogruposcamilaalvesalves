@@ -50,12 +50,13 @@ Deno.serve(async (req) => {
 
   try {
     let action = "qrcode";
+    let bodyData: Record<string, unknown> = {};
     
     // Support both GET query params and POST body
     if (req.method === "POST") {
       try {
-        const body = await req.json();
-        action = body.action || "qrcode";
+        bodyData = await req.json();
+        action = (bodyData.action as string) || "qrcode";
       } catch {
         // no body, use default
       }
@@ -153,6 +154,27 @@ Deno.serve(async (req) => {
         { method: "DELETE", headers: { "Client-Token": clientToken } }
       );
       const data = await res.json();
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "groups") {
+      const page = Number(bodyData.page) || 1;
+      const pageSize = Number(bodyData.pageSize) || 100;
+      const zapiUrl = `${ZAPI_BASE}/instances/${instanceId}/token/${token}/groups?page=${page}&pageSize=${pageSize}`;
+      console.log(`Fetching groups from: ${zapiUrl}`);
+      const res = await fetch(zapiUrl, {
+        headers: { "Client-Token": clientToken },
+      });
+      const data = await res.json();
+      console.log(`Z-API groups response status: ${res.status}, count: ${Array.isArray(data) ? data.length : 'N/A'}`);
+      if (!res.ok) {
+        return new Response(JSON.stringify({ error: `Z-API retornou erro ${res.status}`, details: JSON.stringify(data) }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
