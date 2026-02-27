@@ -41,6 +41,7 @@ const GroupsPage = () => {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importedGroups, setImportedGroups] = useState<Array<{ phone: string; name: string; participantsCount?: number; communityId?: string }>>([]);
+  const [importSearch, setImportSearch] = useState("");
   const [selectedImportGroups, setSelectedImportGroups] = useState<Set<number>>(new Set());
   const [importStep, setImportStep] = useState<"loading" | "select" | "importing" | "done">("loading");
   const [newName, setNewName] = useState("");
@@ -298,8 +299,20 @@ const GroupsPage = () => {
                   {selectedImportGroups.size === importedGroups.length ? "Desmarcar todos" : "Selecionar todos"}
                 </Button>
               </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar grupo..."
+                  className="pl-9 bg-secondary/50 border-border"
+                  value={importSearch}
+                  onChange={(e) => setImportSearch(e.target.value)}
+                />
+              </div>
               <div className="overflow-y-auto max-h-[40vh] space-y-1 pr-1">
-                {importedGroups.map((group, i) => (
+                {importedGroups
+                  .map((group, i) => ({ group, i }))
+                  .filter(({ group }) => !importSearch || (group.name || group.phone).toLowerCase().includes(importSearch.toLowerCase()))
+                  .map(({ group, i }) => (
                   <label
                     key={i}
                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
