@@ -1,22 +1,17 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap } from "lucide-react";
+import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2 } from "lucide-react";
 import { useState } from "react";
-
-const groups = [
-  { id: "1", name: "VIP Clientes Premium", members: 128 },
-  { id: "2", name: "Promoções Varejo SP", members: 342 },
-  { id: "3", name: "Atacado Nacional", members: 89 },
-  { id: "4", name: "Lançamentos 2025", members: 215 },
-  { id: "5", name: "Varejo RJ", members: 198 },
-  { id: "6", name: "Revendedores Gold", members: 156 },
-];
+import { useGroups } from "@/hooks/useGroups";
+import { useConnections } from "@/hooks/useConnections";
+import { useAddBroadcast } from "@/hooks/useBroadcasts";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const contentTypes = [
   { id: "text", label: "Texto", icon: FileText },
@@ -26,10 +21,18 @@ const contentTypes = [
 ];
 
 const BroadcastPage = () => {
+  const { data: groups = [] } = useGroups();
+  const { data: connections = [] } = useConnections();
+  const addBroadcast = useAddBroadcast();
+
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [contentType, setContentType] = useState("text");
   const [delay, setDelay] = useState([3]);
   const [mentionAll, setMentionAll] = useState(false);
+  const [message, setMessage] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [connectionId, setConnectionId] = useState("");
+  const [sending, setSending] = useState(false);
 
   const toggleGroup = (id: string) => {
     setSelectedGroups((prev) =>
@@ -37,12 +40,73 @@ const BroadcastPage = () => {
     );
   };
 
+  const handleSend = async () => {
+    if (selectedGroups.length === 0 || (!message && !mediaUrl)) {
+      toast.error("Selecione grupos e escreva uma mensagem");
+      return;
+    }
+
+    setSending(true);
+    try {
+      // Save broadcast record
+      const broadcast = await addBroadcast.mutateAsync({
+        title: message.slice(0, 50) || "Disparo",
+        content: message,
+        content_type: contentType as any,
+        media_url: mediaUrl || null,
+        connection_id: connectionId || null,
+        delay_seconds: delay[0],
+        total_groups: selectedGroups.length,
+        mention_mode: mentionAll ? "all" : "none",
+        status: "sending",
+      });
+
+      // Send to each group with delay
+      let sentCount = 0;
+      for (const groupId of selectedGroups) {
+        const group = groups.find((g) => g.id === groupId);
+        if (!group) continue;
+
+        try {
+          const { error } = await supabase.functions.invoke("zapi-send", {
+            body: {
+              phone: groupId, // Z-API uses group JID
+              message,
+              contentType,
+              mediaUrl: mediaUrl || undefined,
+              mentionAll,
+            },
+          });
+
+          if (error) throw error;
+          sentCount++;
+        } catch (e) {
+          console.error(`Failed to send to group ${group.name}:`, e);
+        }
+
+        // Delay between sends
+        if (selectedGroups.indexOf(groupId) < selectedGroups.length - 1) {
+          await new Promise((r) => setTimeout(r, delay[0] * 1000));
+        }
+      }
+
+      toast.success(`Enviado para ${sentCount}/${selectedGroups.length} grupos!`);
+      setSelectedGroups([]);
+      setMessage("");
+      setMediaUrl("");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao enviar");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Novo Disparo</h1>
-          <p className="text-sm text-muted-foreground">Envie mensagens em massa para seus grupos</p>
+          <p className="text-sm text-muted-foreground">Envie mensagens em massa para seus grupos via Z-API</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -67,23 +131,28 @@ const BroadcastPage = () => {
                   />
                   <div className="flex-1">
                     <p className="text-sm text-foreground">{group.name}</p>
-                    <p className="text-xs text-muted-foreground">{group.members} membros</p>
+                    <p className="text-xs text-muted-foreground">{group.member_count} membros</p>
                   </div>
                 </label>
               ))}
+              {groups.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">Nenhum grupo cadastrado</p>
+              )}
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-xs border-border"
-              onClick={() =>
-                setSelectedGroups(
-                  selectedGroups.length === groups.length ? [] : groups.map((g) => g.id)
-                )
-              }
-            >
-              {selectedGroups.length === groups.length ? "Desmarcar todos" : "Selecionar todos"}
-            </Button>
+            {groups.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs border-border"
+                onClick={() =>
+                  setSelectedGroups(
+                    selectedGroups.length === groups.length ? [] : groups.map((g) => g.id)
+                  )
+                }
+              >
+                {selectedGroups.length === groups.length ? "Desmarcar todos" : "Selecionar todos"}
+              </Button>
+            )}
           </div>
 
           {/* Message composer */}
@@ -110,16 +179,24 @@ const BroadcastPage = () => {
                 ))}
               </div>
 
-              {contentType === "image" && (
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                  <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">Arraste ou clique para adicionar imagem</p>
+              {(contentType === "image" || contentType === "video") && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">URL da mídia</Label>
+                  <input
+                    type="url"
+                    placeholder="https://exemplo.com/imagem.jpg"
+                    className="w-full px-3 py-2 rounded-md bg-secondary/50 border border-border text-sm text-foreground"
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                  />
                 </div>
               )}
 
               <Textarea
                 placeholder={`Digite sua mensagem...\n\nVariáveis disponíveis: {nome_grupo}, {categoria}, {data}`}
                 className="min-h-[160px] bg-secondary/50 border-border resize-none"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
               />
 
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -128,6 +205,7 @@ const BroadcastPage = () => {
                   <button
                     key={v}
                     className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono"
+                    onClick={() => setMessage((prev) => prev + v)}
                   >
                     {v}
                   </button>
@@ -144,14 +222,19 @@ const BroadcastPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Número de envio</Label>
-                  <Select>
+                  <Select value={connectionId} onValueChange={setConnectionId}>
                     <SelectTrigger className="bg-secondary/50 border-border">
                       <SelectValue placeholder="Selecione o número" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">+55 11 9999-0001</SelectItem>
-                      <SelectItem value="2">+55 11 9999-0002</SelectItem>
-                      <SelectItem value="3">+55 11 9999-0003</SelectItem>
+                      {connections.filter(c => c.status === "connected").map((conn) => (
+                        <SelectItem key={conn.id} value={conn.id}>
+                          {conn.phone_number}
+                        </SelectItem>
+                      ))}
+                      {connections.filter(c => c.status === "connected").length === 0 && (
+                        <SelectItem value="_none" disabled>Nenhum número conectado</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -165,7 +248,6 @@ const BroadcastPage = () => {
                     <SelectContent>
                       <SelectItem value="none">Sem menção</SelectItem>
                       <SelectItem value="all">Mencionar todos</SelectItem>
-                      <SelectItem value="admins">Somente admins</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -196,10 +278,15 @@ const BroadcastPage = () => {
               </Button>
               <Button
                 className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 glow-primary"
-                disabled={selectedGroups.length === 0}
+                disabled={selectedGroups.length === 0 || sending || (!message && !mediaUrl)}
+                onClick={handleSend}
               >
-                <Send className="h-4 w-4 mr-2" />
-                Enviar Agora ({selectedGroups.length} grupos)
+                {sending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                {sending ? "Enviando..." : `Enviar Agora (${selectedGroups.length} grupos)`}
               </Button>
             </div>
           </div>

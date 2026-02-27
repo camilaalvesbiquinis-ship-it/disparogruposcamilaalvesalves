@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { QrCode, RefreshCw, CheckCircle2, Smartphone, Loader2 } from "lucide-react";
+import { QrCode, RefreshCw, CheckCircle2, Smartphone, Loader2, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-type Step = "generating" | "ready" | "scanning" | "connected";
+type Step = "generating" | "ready" | "scanning" | "connected" | "error";
 
 interface QrCodeDialogProps {
   open: boolean;
@@ -11,73 +12,103 @@ interface QrCodeDialogProps {
   onConnected: (number: string, device: string) => void;
 }
 
-function generateFakeQrMatrix(): boolean[][] {
-  const size = 25;
-  const matrix: boolean[][] = [];
-  for (let r = 0; r < size; r++) {
-    const row: boolean[] = [];
-    for (let c = 0; c < size; c++) {
-      // Finder patterns (top-left, top-right, bottom-left)
-      const inFinderTL = r < 7 && c < 7;
-      const inFinderTR = r < 7 && c >= size - 7;
-      const inFinderBL = r >= size - 7 && c < 7;
-      if (inFinderTL || inFinderTR || inFinderBL) {
-        const lr = inFinderBL ? r - (size - 7) : r;
-        const lc = inFinderTR ? c - (size - 7) : c;
-        const border = lr === 0 || lr === 6 || lc === 0 || lc === 6;
-        const inner = lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4;
-        row.push(border || inner);
-      } else {
-        row.push(Math.random() > 0.5);
-      }
-    }
-    matrix.push(row);
-  }
-  return matrix;
-}
-
 export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogProps) {
   const [step, setStep] = useState<Step>("generating");
-  const [qrMatrix, setQrMatrix] = useState<boolean[][]>([]);
-  const [timer, setTimer] = useState(60);
+  const [qrBase64, setQrBase64] = useState<string>("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const resetFlow = useCallback(() => {
-    setStep("generating");
-    setTimer(60);
-    setTimeout(() => {
-      setQrMatrix(generateFakeQrMatrix());
-      setStep("ready");
-    }, 1500);
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
   }, []);
 
-  useEffect(() => {
-    if (open) resetFlow();
-  }, [open, resetFlow]);
+  const fetchQrCode = useCallback(async () => {
+    setStep("generating");
+    setErrorMsg("");
+    try {
+      const { data, error } = await supabase.functions.invoke("zapi-qrcode", {
+        body: null,
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
 
-  // Countdown timer when QR is ready
-  useEffect(() => {
-    if (step !== "ready") return;
-    if (timer <= 0) {
-      resetFlow();
-      return;
+      // Z-API returns { value: "base64..." } for qr-code/image
+      if (error) throw new Error(error.message || "Erro ao gerar QR Code");
+      
+      if (data?.value) {
+        setQrBase64(data.value);
+        setStep("ready");
+      } else if (data?.connected) {
+        // Already connected
+        setStep("connected");
+        checkPhoneInfo();
+      } else {
+        throw new Error(data?.error || "QR Code não disponível. Verifique sua instância Z-API.");
+      }
+    } catch (e: unknown) {
+      console.error("QR fetch error:", e);
+      setErrorMsg(e instanceof Error ? e.message : "Erro desconhecido");
+      setStep("error");
     }
-    const interval = setInterval(() => setTimer((t) => t - 1), 1000);
-    return () => clearInterval(interval);
-  }, [step, timer, resetFlow]);
+  }, []);
 
-  const simulateScan = () => {
-    setStep("scanning");
-    setTimeout(() => {
-      setStep("connected");
+  const checkStatus = useCallback(async () => {
+    try {
+      const { data } = await supabase.functions.invoke("zapi-qrcode?action=status", {
+        body: null,
+        method: "GET",
+      });
+      
+      if (data?.connected) {
+        stopPolling();
+        setStep("connected");
+        checkPhoneInfo();
+      }
+    } catch {
+      // ignore polling errors
+    }
+  }, [stopPolling]);
+
+  const checkPhoneInfo = async () => {
+    try {
+      const { data } = await supabase.functions.invoke("zapi-qrcode?action=phone", {
+        body: null,
+        method: "GET",
+      });
+      const phone = data?.phone || data?.value || "Número conectado";
+      const device = data?.device || "WhatsApp";
+      
       setTimeout(() => {
-        const numbers = ["+55 21 9888-0004", "+55 31 9777-0005", "+55 41 9666-0006"];
-        const devices = ["Pixel 8 Pro", "Galaxy A54", "Motorola Edge 40"];
-        const idx = Math.floor(Math.random() * numbers.length);
-        onConnected(numbers[idx], devices[idx]);
+        onConnected(phone, device);
         onOpenChange(false);
       }, 2000);
-    }, 2500);
+    } catch {
+      onConnected("Número conectado", "WhatsApp");
+      setTimeout(() => onOpenChange(false), 2000);
+    }
   };
+
+  useEffect(() => {
+    if (open) {
+      fetchQrCode();
+    } else {
+      stopPolling();
+    }
+    return () => stopPolling();
+  }, [open, fetchQrCode, stopPolling]);
+
+  // Start polling when QR is ready
+  useEffect(() => {
+    if (step === "ready") {
+      pollRef.current = setInterval(checkStatus, 3000);
+    } else {
+      stopPolling();
+    }
+    return () => stopPolling();
+  }, [step, checkStatus, stopPolling]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,33 +126,18 @@ export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogPr
               <div className="h-52 w-52 rounded-xl bg-secondary/50 flex items-center justify-center">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
               </div>
-              <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
+              <p className="text-sm text-muted-foreground">Gerando QR Code via Z-API...</p>
             </>
           )}
 
-          {step === "ready" && (
+          {step === "ready" && qrBase64 && (
             <>
-              <div
-                className="relative p-3 rounded-xl bg-foreground cursor-pointer group"
-                onClick={simulateScan}
-                title="Clique para simular escaneamento"
-              >
-                <div className="grid gap-0" style={{ gridTemplateColumns: `repeat(${qrMatrix.length}, 1fr)` }}>
-                  {qrMatrix.flat().map((filled, i) => (
-                    <div
-                      key={i}
-                      className={`w-[7px] h-[7px] ${filled ? "bg-background" : "bg-foreground"}`}
-                    />
-                  ))}
-                </div>
-                {/* Scan line animation overlay */}
-                <div className="absolute inset-3 overflow-hidden rounded pointer-events-none">
-                  <div className="absolute left-0 right-0 h-0.5 bg-primary/60 animate-pulse-glow" style={{ top: "50%" }} />
-                </div>
-                {/* Hover overlay */}
-                <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/10 transition-colors flex items-center justify-center">
-                  <Smartphone className="h-8 w-8 text-primary-foreground opacity-0 group-hover:opacity-80 transition-opacity" />
-                </div>
+              <div className="p-3 rounded-xl bg-white">
+                <img
+                  src={qrBase64.startsWith("data:") ? qrBase64 : `data:image/png;base64,${qrBase64}`}
+                  alt="QR Code WhatsApp"
+                  className="h-52 w-52 object-contain"
+                />
               </div>
 
               <div className="text-center space-y-1">
@@ -129,43 +145,38 @@ export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogPr
                 <p className="text-xs text-muted-foreground">
                   Abra o WhatsApp → Menu → Dispositivos Conectados → Conectar
                 </p>
-                <p className="text-xs text-muted-foreground font-mono">
-                  Expira em {timer}s
-                </p>
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  Aguardando escaneamento...
+                </div>
               </div>
 
-              <div className="flex gap-2 w-full">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 border-border text-foreground"
-                  onClick={resetFlow}
-                >
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                  Gerar Novo
-                </Button>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                  onClick={simulateScan}
-                >
-                  <Smartphone className="h-3.5 w-3.5 mr-1.5" />
-                  Simular Conexão
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-border text-foreground"
+                onClick={fetchQrCode}
+              >
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Gerar Novo QR Code
+              </Button>
             </>
           )}
 
-          {step === "scanning" && (
+          {step === "error" && (
             <>
-              <div className="h-52 w-52 rounded-xl bg-secondary/50 flex flex-col items-center justify-center gap-3">
-                <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-success animate-pulse-glow" />
-                  <span className="text-xs text-muted-foreground">Escaneamento detectado</span>
-                </div>
+              <div className="h-52 w-52 rounded-xl bg-destructive/10 flex flex-col items-center justify-center gap-3 p-4">
+                <AlertTriangle className="h-10 w-10 text-destructive" />
+                <p className="text-xs text-center text-destructive">{errorMsg}</p>
               </div>
-              <p className="text-sm text-foreground font-medium">Autenticando dispositivo...</p>
+              <Button
+                size="sm"
+                className="w-full bg-primary text-primary-foreground"
+                onClick={fetchQrCode}
+              >
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Tentar Novamente
+              </Button>
             </>
           )}
 
