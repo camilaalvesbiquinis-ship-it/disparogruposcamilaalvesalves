@@ -6,7 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2, Upload, X } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useGroups } from "@/hooks/useGroups";
 import { useConnections } from "@/hooks/useConnections";
 import { useAddBroadcast } from "@/hooks/useBroadcasts";
@@ -25,6 +26,7 @@ const BroadcastPage = () => {
   const { data: groups = [] } = useGroups();
   const { data: connections = [] } = useConnections();
   const addBroadcast = useAddBroadcast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [contentType, setContentType] = useState("text");
@@ -37,6 +39,28 @@ const BroadcastPage = () => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load cloned broadcast data from query params
+  useEffect(() => {
+    const msg = searchParams.get("message");
+    const ct = searchParams.get("contentType");
+    const media = searchParams.get("mediaUrl");
+    const mention = searchParams.get("mentionMode");
+    const d = searchParams.get("delay");
+    const conn = searchParams.get("connectionId");
+
+    if (msg) setMessage(msg);
+    if (ct) setContentType(ct);
+    if (media) { setMediaUrl(media); setPreviewUrl(media); }
+    if (mention === "all") setMentionAll(true);
+    if (d) setDelay([Number(d)]);
+    if (conn) setConnectionId(conn);
+
+    // Clear params after loading
+    if (msg || ct || media) {
+      setSearchParams({}, { replace: true });
+    }
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
