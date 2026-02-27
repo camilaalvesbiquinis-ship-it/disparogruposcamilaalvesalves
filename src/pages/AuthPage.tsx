@@ -78,8 +78,14 @@ const AuthPage = () => {
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             disabled={loading}
           >
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isLogin ? "Entrar" : "Criar Conta"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Aguarde...
+              </span>
+            ) : (
+              <span>{isLogin ? "Entrar" : "Criar Conta"}</span>
+            )}
           </Button>
         </form>
 
