@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import GroupsPage from "./pages/GroupsPage";
 import BroadcastPage from "./pages/BroadcastPage";
+import MessagesPage from "./pages/MessagesPage";
 import SchedulesPage from "./pages/SchedulesPage";
 import SecurityPage from "./pages/SecurityPage";
 import ReportsPage from "./pages/ReportsPage";
@@ -53,6 +54,7 @@ const AppRoutes = () => (
     <Route path="/connections" element={<ProtectedRoute><ConnectionsPage /></ProtectedRoute>} />
     <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
     <Route path="/broadcast" element={<ProtectedRoute><BroadcastPage /></ProtectedRoute>} />
+    <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
     <Route path="/schedules" element={<ProtectedRoute><SchedulesPage /></ProtectedRoute>} />
     <Route path="/security" element={<ProtectedRoute><SecurityPage /></ProtectedRoute>} />
     <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
