@@ -135,12 +135,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (action === "phone") {
+    if (action === "phone" || action === "device") {
       const res = await fetch(
-        `${ZAPI_BASE}/instances/${instanceId}/token/${token}/phone`,
+        `${ZAPI_BASE}/instances/${instanceId}/token/${token}/device`,
         { headers: { "Client-Token": clientToken } }
       );
       const data = await res.json();
+      console.log("Z-API device response:", JSON.stringify(data));
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
