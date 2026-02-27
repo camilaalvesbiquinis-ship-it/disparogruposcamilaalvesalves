@@ -2,24 +2,13 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QrCodeDialog } from "@/components/QrCodeDialog";
-import { Smartphone, Plus, RefreshCw, MoreVertical, Wifi, WifiOff, AlertTriangle } from "lucide-react";
+import { Smartphone, Plus, RefreshCw, MoreVertical, Wifi, WifiOff, AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useConnections, useAddConnection, useUpdateConnection, useDeleteConnection } from "@/hooks/useConnections";
+import { toast } from "sonner";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface Connection {
-  id: number;
-  number: string;
-  device: string;
-  status: string;
-  groups: number;
-  maxGroups: number;
-  lastSeen: string;
-}
-
-const initialConnections: Connection[] = [
-  { id: 1, number: "+55 11 9999-0001", device: "Samsung Galaxy S23", status: "connected", groups: 22, maxGroups: 50, lastSeen: "Agora" },
-  { id: 2, number: "+55 11 9999-0002", device: "iPhone 15 Pro", status: "connected", groups: 15, maxGroups: 50, lastSeen: "Há 2 min" },
-  { id: 3, number: "+55 11 9999-0003", device: "Xiaomi 14", status: "disconnected", groups: 10, maxGroups: 50, lastSeen: "Há 3h" },
-];
+type Connection = Tables<"whatsapp_connections">;
 
 const statusConfig: Record<string, { label: string; class: string; icon: typeof Wifi }> = {
   connected: { label: "Conectado", class: "bg-success/10 text-success border-success/30", icon: Wifi },
@@ -28,28 +17,34 @@ const statusConfig: Record<string, { label: string; class: string; icon: typeof 
 };
 
 const ConnectionsPage = () => {
-  const [connections, setConnections] = useState<Connection[]>(initialConnections);
+  const { data: connections = [], isLoading } = useConnections();
+  const addConnection = useAddConnection();
+  const updateConnection = useUpdateConnection();
+  const deleteConnection = useDeleteConnection();
   const [qrOpen, setQrOpen] = useState(false);
 
   const handleConnected = (number: string, device: string) => {
-    setConnections((prev) => [
-      ...prev,
+    addConnection.mutate(
+      { phone_number: number, device_name: device, status: "connected" },
       {
-        id: Date.now(),
-        number,
-        device,
-        status: "connected",
-        groups: 0,
-        maxGroups: 50,
-        lastSeen: "Agora",
-      },
-    ]);
+        onSuccess: () => toast.success("Número conectado com sucesso!"),
+        onError: (e) => toast.error(e.message),
+      }
+    );
   };
 
-  const handleReconnect = (id: number) => {
-    setConnections((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: "connected", lastSeen: "Agora" } : c))
+  const handleReconnect = (id: string) => {
+    updateConnection.mutate(
+      { id, status: "connected" },
+      { onSuccess: () => toast.success("Reconectado!") }
     );
+  };
+
+  const handleDelete = (id: string) => {
+    deleteConnection.mutate(id, {
+      onSuccess: () => toast.success("Número removido"),
+      onError: (e) => toast.error(e.message),
+    });
   };
 
   return (
@@ -66,54 +61,73 @@ const ConnectionsPage = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {connections.map((conn) => {
-            const sc = statusConfig[conn.status] || statusConfig.disconnected;
-            return (
-              <div key={conn.id} className="card-glow rounded-xl p-5 space-y-4 animate-slide-in">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Smartphone className="h-5 w-5" />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-6 w-6 text-primary animate-spin" />
+          </div>
+        ) : connections.length === 0 ? (
+          <div className="card-glow rounded-xl p-12 text-center space-y-3">
+            <Smartphone className="h-10 w-10 mx-auto text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Nenhum número conectado ainda</p>
+            <Button size="sm" className="bg-primary text-primary-foreground" onClick={() => setQrOpen(true)}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Conectar Primeiro Número
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {connections.map((conn) => {
+              const sc = statusConfig[conn.status] || statusConfig.disconnected;
+              const groupCount = 0; // Would come from a count query
+              return (
+                <div key={conn.id} className="card-glow rounded-xl p-5 space-y-4 animate-slide-in">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Smartphone className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground font-mono">{conn.phone_number}</p>
+                        <p className="text-xs text-muted-foreground">{conn.device_name || "Dispositivo"}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground font-mono">{conn.number}</p>
-                      <p className="text-xs text-muted-foreground">{conn.device}</p>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
-                    <MoreVertical className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-
-                <Badge variant="outline" className={sc.class}>
-                  <sc.icon className="h-3 w-3 mr-1" />
-                  {sc.label}
-                </Badge>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Grupos</span>
-                    <span>{conn.groups} / {conn.maxGroups}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(conn.groups / conn.maxGroups) * 100}%` }} />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Última atividade: {conn.lastSeen}</span>
-                  {conn.status === "disconnected" && (
-                    <Button variant="ghost" size="sm" className="h-7 text-xs text-primary hover:text-primary" onClick={() => handleReconnect(conn.id)}>
-                      <RefreshCw className="h-3 w-3 mr-1" />
-                      Reconectar
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDelete(conn.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
-                  )}
+                  </div>
+
+                  <Badge variant="outline" className={sc.class}>
+                    <sc.icon className="h-3 w-3 mr-1" />
+                    {sc.label}
+                  </Badge>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Grupos</span>
+                      <span>{groupCount} / {conn.max_groups}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted">
+                      <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(groupCount / conn.max_groups) * 100}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Conectado {new Date(conn.created_at).toLocaleDateString("pt-BR")}</span>
+                    {conn.status === "disconnected" && (
+                      <Button variant="ghost" size="sm" className="h-7 text-xs text-primary" onClick={() => handleReconnect(conn.id)}>
+                        <RefreshCw className="h-3 w-3 mr-1" /> Reconectar
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <QrCodeDialog open={qrOpen} onOpenChange={setQrOpen} onConnected={handleConnected} />

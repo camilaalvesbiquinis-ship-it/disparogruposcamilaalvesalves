@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Dashboard from "./pages/Dashboard";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import GroupsPage from "./pages/GroupsPage";
@@ -12,30 +13,65 @@ import SecurityPage from "./pages/SecurityPage";
 import ReportsPage from "./pages/ReportsPage";
 import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
+import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
+import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth" replace />;
+  return <>{children}</>;
+}
+
+function AuthRoute() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+  if (user) return <Navigate to="/" replace />;
+  return <AuthPage />;
+}
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/auth" element={<AuthRoute />} />
+    <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+    <Route path="/connections" element={<ProtectedRoute><ConnectionsPage /></ProtectedRoute>} />
+    <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
+    <Route path="/broadcast" element={<ProtectedRoute><BroadcastPage /></ProtectedRoute>} />
+    <Route path="/schedules" element={<ProtectedRoute><SchedulesPage /></ProtectedRoute>} />
+    <Route path="/security" element={<ProtectedRoute><SecurityPage /></ProtectedRoute>} />
+    <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+    <Route path="/plans" element={<ProtectedRoute><PlansPage /></ProtectedRoute>} />
+    <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/connections" element={<ConnectionsPage />} />
-          <Route path="/groups" element={<GroupsPage />} />
-          <Route path="/broadcast" element={<BroadcastPage />} />
-          <Route path="/schedules" element={<SchedulesPage />} />
-          <Route path="/security" element={<SecurityPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/plans" element={<PlansPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
