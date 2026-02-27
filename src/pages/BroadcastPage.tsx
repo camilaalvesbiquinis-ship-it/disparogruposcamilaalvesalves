@@ -13,6 +13,8 @@ import { useConnections } from "@/hooks/useConnections";
 import { useAddBroadcast } from "@/hooks/useBroadcasts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logAuditAction } from "@/lib/audit";
+import { sanitizeText, containsSQLInjection } from "@/lib/validation";
 import MessagePreview from "@/components/MessagePreview";
 
 const contentTypes = [
@@ -84,11 +86,13 @@ const BroadcastPage = () => {
         .upload(fileName, file, { contentType: file.type });
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage
+      // Use signed URL instead of public URL (bucket is private)
+      const { data: signedData, error: signedError } = await supabase.storage
         .from("broadcast-media")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600); // 1 hour expiry
+      if (signedError) throw signedError;
 
-      setMediaUrl(urlData.publicUrl);
+      setMediaUrl(signedData.signedUrl);
       setPreviewUrl(URL.createObjectURL(file));
       setContentType("image");
       toast.success("Imagem enviada!");
@@ -118,12 +122,23 @@ const BroadcastPage = () => {
       return;
     }
 
+    // Validate and sanitize message
+    if (message.length > 4096) {
+      toast.error("Mensagem deve ter no máximo 4096 caracteres");
+      return;
+    }
+    if (containsSQLInjection(message)) {
+      toast.error("Conteúdo inválido detectado na mensagem");
+      return;
+    }
+    const sanitizedMessage = sanitizeText(message);
+
     setSending(true);
     try {
       // Save broadcast record
       const broadcast = await addBroadcast.mutateAsync({
-        title: message.slice(0, 50) || "Disparo",
-        content: message,
+        title: sanitizedMessage.slice(0, 50) || "Disparo",
+        content: sanitizedMessage,
         content_type: contentType as any,
         media_url: mediaUrl || null,
         connection_id: connectionId || null,
@@ -131,6 +146,14 @@ const BroadcastPage = () => {
         total_groups: selectedGroups.length,
         mention_mode: mentionAll ? "all" : "none",
         status: "sending",
+      });
+
+      // Audit log for broadcast creation
+      await logAuditAction({
+        action: "edit",
+        tableName: "broadcasts",
+        recordId: broadcast.id,
+        details: { groups: selectedGroups.length, contentType },
       });
 
       // Send to each group with delay
@@ -150,7 +173,7 @@ const BroadcastPage = () => {
           const { error } = await supabase.functions.invoke("zapi-send", {
             body: {
               phone: whatsappId,
-              message,
+              message: sanitizedMessage,
               contentType,
               mediaUrl: mediaUrl || undefined,
               mentionAll,
@@ -309,7 +332,9 @@ const BroadcastPage = () => {
                 className="min-h-[160px] bg-secondary/50 border-border resize-none"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                maxLength={4096}
               />
+              <p className="text-[10px] text-muted-foreground text-right">{message.length}/4096</p>
 
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span>Variáveis:</span>
