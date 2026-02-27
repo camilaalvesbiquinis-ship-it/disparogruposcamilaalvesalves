@@ -51,26 +51,72 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { phone, message, contentType, mediaUrl, mentionAll } = body;
 
-    if (!phone || (!message && !mediaUrl)) {
-      return new Response(JSON.stringify({ error: "phone and message/mediaUrl are required" }), {
+    // Input validation
+    if (!phone || typeof phone !== "string") {
+      return new Response(JSON.stringify({ error: "phone is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    let endpoint = "send-text";
-    let payload: Record<string, unknown> = { phone, message };
+    // Validate WhatsApp group JID format
+    if (!/^\d+@g\.us$/.test(phone)) {
+      return new Response(JSON.stringify({ error: "Invalid phone/group format. Expected: digits@g.us" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    if (contentType === "image" && mediaUrl) {
+    // Validate message length
+    if (message && typeof message === "string" && message.length > 4096) {
+      return new Response(JSON.stringify({ error: "Message too long (max 4096 chars)" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate media URL format
+    if (mediaUrl && typeof mediaUrl === "string") {
+      try {
+        const parsedUrl = new URL(mediaUrl);
+        if (!["https:", "http:"].includes(parsedUrl.protocol)) {
+          return new Response(JSON.stringify({ error: "Invalid media URL protocol" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } catch {
+        return new Response(JSON.stringify({ error: "Invalid media URL" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    if (!message && !mediaUrl) {
+      return new Response(JSON.stringify({ error: "message or mediaUrl is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate contentType
+    const validTypes = ["text", "image", "video", "pdf", "catalog", "link"];
+    const safeContentType = validTypes.includes(contentType) ? contentType : "text";
+
+    let endpoint = "send-text";
+    let payload: Record<string, unknown> = { phone, message: message || "" };
+
+    if (safeContentType === "image" && mediaUrl) {
       endpoint = "send-image";
       payload = { phone, image: mediaUrl, caption: message || "" };
-    } else if (contentType === "video" && mediaUrl) {
+    } else if (safeContentType === "video" && mediaUrl) {
       endpoint = "send-video";
       payload = { phone, video: mediaUrl, caption: message || "" };
-    } else if (contentType === "pdf" && mediaUrl) {
+    } else if (safeContentType === "pdf" && mediaUrl) {
       endpoint = "send-document/pdf";
       payload = { phone, document: mediaUrl, fileName: "document.pdf" };
-    } else if (contentType === "link") {
+    } else if (safeContentType === "link") {
       endpoint = "send-link";
       payload = { phone, message: message || "", image: "", linkUrl: mediaUrl || message, title: "", linkDescription: "" };
     }
@@ -101,8 +147,7 @@ Deno.serve(async (req) => {
     });
   } catch (error: unknown) {
     console.error("Z-API send error:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: msg }), {
+    return new Response(JSON.stringify({ error: "Falha ao enviar mensagem. Tente novamente." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

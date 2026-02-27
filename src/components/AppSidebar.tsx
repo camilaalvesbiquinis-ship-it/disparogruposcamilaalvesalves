@@ -11,6 +11,7 @@ import {
   CreditCard,
   Zap,
   UserCog,
+  ScrollText,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -39,6 +40,7 @@ const mainNav = [
 
 const systemNav = [
   { title: "Usuários", url: "/users", icon: UserCog },
+  { title: "Auditoria", url: "/admin/audit-logs", icon: ScrollText },
   { title: "Segurança", url: "/security", icon: Shield },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
   { title: "Planos", url: "/plans", icon: CreditCard },
