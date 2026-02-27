@@ -49,20 +49,76 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const action = url.searchParams.get("action") || "qrcode";
+    let action = "qrcode";
+    
+    // Support both GET query params and POST body
+    if (req.method === "POST") {
+      try {
+        const body = await req.json();
+        action = body.action || "qrcode";
+      } catch {
+        // no body, use default
+      }
+    } else {
+      const url = new URL(req.url);
+      action = url.searchParams.get("action") || "qrcode";
+    }
+
+    console.log(`Z-API action: ${action}, instance: ${instanceId}`);
 
     if (action === "qrcode") {
-      // Get QR code image (base64)
-      const res = await fetch(
-        `${ZAPI_BASE}/instances/${instanceId}/token/${token}/qr-code/image`,
-        { headers: { "Client-Token": clientToken } }
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(`Z-API QR code failed [${res.status}]: ${JSON.stringify(data)}`);
+      const zapiUrl = `${ZAPI_BASE}/instances/${instanceId}/token/${token}/qr-code/image`;
+      console.log(`Fetching QR code from: ${zapiUrl}`);
+      
+      const res = await fetch(zapiUrl, {
+        headers: { "Client-Token": clientToken },
+      });
+      
+      const responseText = await res.text();
+      console.log(`Z-API QR response status: ${res.status}, body length: ${responseText.length}`);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        // If response is not JSON, it might be the image directly
+        data = { value: responseText };
       }
-      return new Response(JSON.stringify(data), {
+
+      if (!res.ok) {
+        console.error(`Z-API QR error: ${responseText}`);
+        return new Response(JSON.stringify({ 
+          error: `Z-API retornou erro ${res.status}`, 
+          details: responseText,
+          hint: "Verifique se Instance ID, Token e Client Token estão corretos no painel da Z-API"
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Z-API returns { value: "base64..." } for qr-code/image
+      if (data?.value) {
+        return new Response(JSON.stringify({ qrcode: data.value }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      // If connected already
+      if (data?.connected === true) {
+        return new Response(JSON.stringify({ connected: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Unknown response format
+      console.log("Unexpected Z-API QR response:", JSON.stringify(data));
+      return new Response(JSON.stringify({ 
+        error: "Resposta inesperada da Z-API",
+        details: JSON.stringify(data),
+        hint: "Verifique se sua instância Z-API está ativa e as credenciais estão corretas"
+      }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -70,6 +126,18 @@ Deno.serve(async (req) => {
     if (action === "status") {
       const res = await fetch(
         `${ZAPI_BASE}/instances/${instanceId}/token/${token}/status`,
+        { headers: { "Client-Token": clientToken } }
+      );
+      const data = await res.json();
+      console.log("Z-API status:", JSON.stringify(data));
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "phone") {
+      const res = await fetch(
+        `${ZAPI_BASE}/instances/${instanceId}/token/${token}/phone`,
         { headers: { "Client-Token": clientToken } }
       );
       const data = await res.json();
@@ -89,24 +157,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (action === "phone") {
-      const res = await fetch(
-        `${ZAPI_BASE}/instances/${instanceId}/token/${token}/phone`,
-        { headers: { "Client-Token": clientToken } }
-      );
-      const data = await res.json();
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ error: "Unknown action" }), {
+    return new Response(JSON.stringify({ error: "Ação desconhecida" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
     console.error("Z-API error:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
+    const msg = error instanceof Error ? error.message : "Erro desconhecido";
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

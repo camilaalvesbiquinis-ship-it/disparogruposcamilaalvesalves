@@ -30,23 +30,22 @@ export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogPr
     setErrorMsg("");
     try {
       const { data, error } = await supabase.functions.invoke("zapi-qrcode", {
-        body: null,
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+        body: { action: "qrcode" },
       });
 
-      // Z-API returns { value: "base64..." } for qr-code/image
       if (error) throw new Error(error.message || "Erro ao gerar QR Code");
-      
-      if (data?.value) {
-        setQrBase64(data.value);
+
+      if (data?.qrcode) {
+        const qr = data.qrcode;
+        setQrBase64(qr.startsWith("data:") ? qr : `data:image/png;base64,${qr}`);
         setStep("ready");
       } else if (data?.connected) {
-        // Already connected
         setStep("connected");
         checkPhoneInfo();
+      } else if (data?.error) {
+        throw new Error(`${data.error}${data.hint ? `\n${data.hint}` : ""}${data.details ? `\n\nDetalhes: ${data.details}` : ""}`);
       } else {
-        throw new Error(data?.error || "QR Code não disponível. Verifique sua instância Z-API.");
+        throw new Error("QR Code não disponível. Verifique sua instância Z-API.");
       }
     } catch (e: unknown) {
       console.error("QR fetch error:", e);
@@ -57,11 +56,10 @@ export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogPr
 
   const checkStatus = useCallback(async () => {
     try {
-      const { data } = await supabase.functions.invoke("zapi-qrcode?action=status", {
-        body: null,
-        method: "GET",
+      const { data } = await supabase.functions.invoke("zapi-qrcode", {
+        body: { action: "status" },
       });
-      
+
       if (data?.connected) {
         stopPolling();
         setStep("connected");
@@ -74,13 +72,12 @@ export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogPr
 
   const checkPhoneInfo = async () => {
     try {
-      const { data } = await supabase.functions.invoke("zapi-qrcode?action=phone", {
-        body: null,
-        method: "GET",
+      const { data } = await supabase.functions.invoke("zapi-qrcode", {
+        body: { action: "phone" },
       });
       const phone = data?.phone || data?.value || "Número conectado";
       const device = data?.device || "WhatsApp";
-      
+
       setTimeout(() => {
         onConnected(phone, device);
         onOpenChange(false);
@@ -134,7 +131,7 @@ export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogPr
             <>
               <div className="p-3 rounded-xl bg-white">
                 <img
-                  src={qrBase64.startsWith("data:") ? qrBase64 : `data:image/png;base64,${qrBase64}`}
+                  src={qrBase64}
                   alt="QR Code WhatsApp"
                   className="h-52 w-52 object-contain"
                 />
@@ -165,9 +162,9 @@ export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogPr
 
           {step === "error" && (
             <>
-              <div className="h-52 w-52 rounded-xl bg-destructive/10 flex flex-col items-center justify-center gap-3 p-4">
+              <div className="h-auto min-h-[13rem] w-full rounded-xl bg-destructive/10 flex flex-col items-center justify-center gap-3 p-4">
                 <AlertTriangle className="h-10 w-10 text-destructive" />
-                <p className="text-xs text-center text-destructive">{errorMsg}</p>
+                <p className="text-xs text-center text-destructive whitespace-pre-wrap max-w-sm">{errorMsg}</p>
               </div>
               <Button
                 size="sm"
