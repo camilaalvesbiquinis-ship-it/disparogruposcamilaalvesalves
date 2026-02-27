@@ -73,13 +73,14 @@ export function QrCodeDialog({ open, onOpenChange, onConnected }: QrCodeDialogPr
   const checkPhoneInfo = async () => {
     try {
       const { data } = await supabase.functions.invoke("zapi-qrcode", {
-        body: { action: "phone" },
+        body: { action: "device" },
       });
-      const phone = data?.phone || data?.value || "Número conectado";
-      const device = data?.device || "WhatsApp";
+      console.log("Device info:", data);
+      const phone = data?.phone || "Número conectado";
+      const deviceModel = data?.device?.device_model || data?.device?.device_manufacturer || "WhatsApp";
 
       setTimeout(() => {
-        onConnected(phone, device);
+        onConnected(phone, deviceModel);
         onOpenChange(false);
       }, 2000);
     } catch {
