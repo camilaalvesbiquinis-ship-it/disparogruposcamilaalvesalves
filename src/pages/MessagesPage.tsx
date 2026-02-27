@@ -3,11 +3,24 @@ import { useBroadcasts } from "@/hooks/useBroadcasts";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, Search, ImageIcon, Video, FileText, Link2, Clock, CheckCircle2, XCircle, Loader2, Send, Copy } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Mail, Search, ImageIcon, Video, FileText, Link2, Clock,
+  CheckCircle2, XCircle, Loader2, Send, Copy, MoreVertical,
+  Pencil, Archive, ArchiveRestore,
+} from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; className: string }> = {
   sent: { label: "Enviado", icon: CheckCircle2, className: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
@@ -27,7 +40,9 @@ const typeIcons: Record<string, React.ElementType> = {
 const MessagesPage = () => {
   const { data: broadcasts = [], isLoading } = useBroadcasts();
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const cloneBroadcast = (b: typeof broadcasts[0]) => {
     const params = new URLSearchParams();
@@ -40,11 +55,40 @@ const MessagesPage = () => {
     navigate(`/broadcast?${params.toString()}`);
   };
 
-  const filtered = broadcasts.filter(
-    (b) =>
+  const editBroadcast = (b: typeof broadcasts[0]) => {
+    const params = new URLSearchParams();
+    params.set("editId", b.id);
+    if (b.content) params.set("message", b.content);
+    if (b.content_type) params.set("contentType", b.content_type);
+    if (b.media_url) params.set("mediaUrl", b.media_url);
+    if (b.mention_mode) params.set("mentionMode", b.mention_mode);
+    if (b.delay_seconds) params.set("delay", String(b.delay_seconds));
+    if (b.connection_id) params.set("connectionId", b.connection_id);
+    navigate(`/broadcast?${params.toString()}`);
+  };
+
+  const toggleArchive = async (b: typeof broadcasts[0]) => {
+    const newArchived = !(b as any).archived;
+    const { error } = await supabase
+      .from("broadcasts")
+      .update({ archived: newArchived } as any)
+      .eq("id", b.id);
+    if (error) {
+      toast.error("Erro ao atualizar");
+    } else {
+      toast.success(newArchived ? "Mensagem arquivada" : "Mensagem desarquivada");
+      queryClient.invalidateQueries({ queryKey: ["broadcasts"] });
+    }
+  };
+
+  const filtered = broadcasts.filter((b) => {
+    const isArchived = (b as any).archived ?? false;
+    if (showArchived !== isArchived) return false;
+    return (
       b.title.toLowerCase().includes(search.toLowerCase()) ||
       (b.content?.toLowerCase().includes(search.toLowerCase()) ?? false)
-  );
+    );
+  });
 
   return (
     <AppLayout>
@@ -64,6 +108,15 @@ const MessagesPage = () => {
               className="pl-9 bg-secondary/50 border-border"
             />
           </div>
+          <Button
+            variant={showArchived ? "default" : "outline"}
+            size="sm"
+            className={showArchived ? "bg-primary text-primary-foreground" : "border-border text-muted-foreground"}
+            onClick={() => setShowArchived(!showArchived)}
+          >
+            <Archive className="h-3.5 w-3.5 mr-1.5" />
+            {showArchived ? "Arquivadas" : "Arquivadas"}
+          </Button>
           <span className="text-sm text-muted-foreground">{filtered.length} mensagens</span>
         </div>
 
@@ -75,7 +128,11 @@ const MessagesPage = () => {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Mail className="h-12 w-12 text-muted-foreground/30 mb-3" />
             <p className="text-sm text-muted-foreground">
-              {search ? "Nenhuma mensagem encontrada" : "Nenhuma mensagem enviada ainda"}
+              {search
+                ? "Nenhuma mensagem encontrada"
+                : showArchived
+                ? "Nenhuma mensagem arquivada"
+                : "Nenhuma mensagem enviada ainda"}
             </p>
           </div>
         ) : (
@@ -125,16 +182,42 @@ const MessagesPage = () => {
                     </div>
                   </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="shrink-0 border-border text-muted-foreground hover:text-primary hover:border-primary/30"
-                    onClick={() => cloneBroadcast(b)}
-                    title="Clonar mensagem"
-                  >
-                    <Copy className="h-3.5 w-3.5 mr-1.5" />
-                    Clonar
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {(b.status === "draft" || b.status === "failed") && (
+                        <DropdownMenuItem onClick={() => editBroadcast(b)}>
+                          <Pencil className="h-3.5 w-3.5 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={() => cloneBroadcast(b)}>
+                        <Copy className="h-3.5 w-3.5 mr-2" />
+                        Clonar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toggleArchive(b)}>
+                        {(b as any).archived ? (
+                          <>
+                            <ArchiveRestore className="h-3.5 w-3.5 mr-2" />
+                            Desarquivar
+                          </>
+                        ) : (
+                          <>
+                            <Archive className="h-3.5 w-3.5 mr-2" />
+                            Arquivar
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               );
             })}
