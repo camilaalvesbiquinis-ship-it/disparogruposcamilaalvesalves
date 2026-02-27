@@ -100,6 +100,7 @@ export type Database = {
       }
       broadcasts: {
         Row: {
+          archived: boolean
           connection_id: string | null
           content: string | null
           content_type: Database["public"]["Enums"]["broadcast_content_type"]
@@ -117,6 +118,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived?: boolean
           connection_id?: string | null
           content?: string | null
           content_type?: Database["public"]["Enums"]["broadcast_content_type"]
@@ -134,6 +136,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived?: boolean
           connection_id?: string | null
           content?: string | null
           content_type?: Database["public"]["Enums"]["broadcast_content_type"]
