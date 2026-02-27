@@ -140,9 +140,16 @@ const BroadcastPage = () => {
         if (!group) continue;
 
         try {
+          // Extract WhatsApp JID from group description (format: "WhatsApp ID: xxx")
+          const whatsappId = group.description?.replace("WhatsApp ID: ", "").trim();
+          if (!whatsappId) {
+            console.error(`Group ${group.name} has no WhatsApp ID`);
+            continue;
+          }
+
           const { error } = await supabase.functions.invoke("zapi-send", {
             body: {
-              phone: groupId, // Z-API uses group JID
+              phone: whatsappId,
               message,
               contentType,
               mediaUrl: mediaUrl || undefined,
