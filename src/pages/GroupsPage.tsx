@@ -3,13 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, MoreVertical, Users, MessageSquare, Send, Loader2, Trash2 } from "lucide-react";
+import { Search, Plus, Users, MessageSquare, Send, Loader2, Trash2, Download, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useGroups, useAddGroup, useDeleteGroup } from "@/hooks/useGroups";
 import { useConnections } from "@/hooks/useConnections";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Enums } from "@/integrations/supabase/types";
 
 const categoryLabels: Record<string, string> = {
@@ -32,9 +34,15 @@ const GroupsPage = () => {
   const { data: connections = [] } = useConnections();
   const addGroup = useAddGroup();
   const deleteGroup = useDeleteGroup();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importedGroups, setImportedGroups] = useState<Array<{ phone: string; name: string; participantsCount?: number; communityId?: string }>>([]);
+  const [selectedImportGroups, setSelectedImportGroups] = useState<Set<number>>(new Set());
+  const [importStep, setImportStep] = useState<"loading" | "select" | "importing" | "done">("loading");
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState<Enums<"group_category">>("outros");
   const [newConnectionId, setNewConnectionId] = useState("");
@@ -64,6 +72,66 @@ const GroupsPage = () => {
     );
   };
 
+  const handleImportStart = async () => {
+    setImportStep("loading");
+    setImportDialogOpen(true);
+    setImportedGroups([]);
+    setSelectedImportGroups(new Set());
+    try {
+      const { data, error } = await supabase.functions.invoke("zapi-qrcode", {
+        body: { action: "groups", page: 1, pageSize: 200 },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      const groupsList = Array.isArray(data) ? data : [];
+      setImportedGroups(groupsList);
+      setSelectedImportGroups(new Set(groupsList.map((_: unknown, i: number) => i)));
+      setImportStep("select");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao buscar grupos da Z-API");
+      setImportDialogOpen(false);
+    }
+  };
+
+  const toggleImportGroup = (index: number) => {
+    setSelectedImportGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  const handleImportSelected = async () => {
+    setImportStep("importing");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Não autenticado"); return; }
+
+    const connectionId = connections.length > 0 ? connections[0].id : null;
+    const toImport = importedGroups.filter((_, i) => selectedImportGroups.has(i));
+    let imported = 0;
+
+    for (const group of toImport) {
+      try {
+        await supabase.from("groups").insert({
+          name: group.name || group.phone,
+          member_count: group.participantsCount || 0,
+          user_id: user.id,
+          connection_id: connectionId,
+          description: `WhatsApp ID: ${group.phone}`,
+        });
+        imported++;
+      } catch {
+        // skip duplicates or errors
+      }
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["groups"] });
+    setImportStep("done");
+    toast.success(`${imported} grupo(s) importado(s)!`);
+    setTimeout(() => setImportDialogOpen(false), 1500);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -72,9 +140,16 @@ const GroupsPage = () => {
             <h1 className="text-2xl font-bold text-foreground">Grupos</h1>
             <p className="text-sm text-muted-foreground">{groups.length} grupos conectados</p>
           </div>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Grupo
-          </Button>
+          <div className="flex gap-2">
+            {connections.length > 0 && (
+              <Button variant="outline" className="border-border text-foreground" onClick={handleImportStart}>
+                <Download className="h-4 w-4 mr-2" /> Importar do WhatsApp
+              </Button>
+            )}
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Novo Grupo
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -182,6 +257,92 @@ const GroupsPage = () => {
               Criar Grupo
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="bg-card border-border sm:max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Download className="h-5 w-5 text-primary" />
+              Importar Grupos do WhatsApp
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Selecione os grupos que deseja importar da sua conta WhatsApp conectada.
+            </DialogDescription>
+          </DialogHeader>
+
+          {importStep === "loading" && (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <p className="text-sm text-muted-foreground">Buscando grupos da Z-API...</p>
+            </div>
+          )}
+
+          {importStep === "select" && (
+            <div className="flex flex-col gap-4 min-h-0">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">{importedGroups.length} grupo(s) encontrado(s)</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-primary"
+                  onClick={() => {
+                    if (selectedImportGroups.size === importedGroups.length) {
+                      setSelectedImportGroups(new Set());
+                    } else {
+                      setSelectedImportGroups(new Set(importedGroups.map((_, i) => i)));
+                    }
+                  }}
+                >
+                  {selectedImportGroups.size === importedGroups.length ? "Desmarcar todos" : "Selecionar todos"}
+                </Button>
+              </div>
+              <div className="overflow-y-auto max-h-[40vh] space-y-1 pr-1">
+                {importedGroups.map((group, i) => (
+                  <label
+                    key={i}
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedImportGroups.has(i) ? "bg-primary/10 border border-primary/30" : "bg-secondary/30 border border-transparent hover:bg-secondary/50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedImportGroups.has(i)}
+                      onChange={() => toggleImportGroup(i)}
+                      className="accent-primary"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{group.name || group.phone}</p>
+                      <p className="text-xs text-muted-foreground">{group.participantsCount || 0} membros</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <Button
+                className="w-full bg-primary text-primary-foreground"
+                onClick={handleImportSelected}
+                disabled={selectedImportGroups.size === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Importar {selectedImportGroups.size} grupo(s)
+              </Button>
+            </div>
+          )}
+
+          {importStep === "importing" && (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <p className="text-sm text-muted-foreground">Importando grupos...</p>
+            </div>
+          )}
+
+          {importStep === "done" && (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <CheckCircle2 className="h-10 w-10 text-success" />
+              <p className="text-sm font-medium text-foreground">Grupos importados com sucesso!</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </AppLayout>
