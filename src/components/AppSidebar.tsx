@@ -3,6 +3,7 @@ import {
   Smartphone,
   Users,
   Send,
+  Mail,
   CalendarClock,
   Shield,
   BarChart3,
@@ -32,6 +33,7 @@ const mainNav = [
   { title: "Conexões", url: "/connections", icon: Smartphone },
   { title: "Grupos", url: "/groups", icon: Users },
   { title: "Disparos", url: "/broadcast", icon: Send },
+  { title: "Mensagens", url: "/messages", icon: Mail },
   { title: "Agendamentos", url: "/schedules", icon: CalendarClock },
 ];
 
