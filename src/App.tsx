@@ -13,6 +13,7 @@ import SecurityPage from "./pages/SecurityPage";
 import ReportsPage from "./pages/ReportsPage";
 import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
+import UsersPage from "./pages/UsersPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -56,6 +57,7 @@ const AppRoutes = () => (
     <Route path="/security" element={<ProtectedRoute><SecurityPage /></ProtectedRoute>} />
     <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
     <Route path="/plans" element={<ProtectedRoute><PlansPage /></ProtectedRoute>} />
+    <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
