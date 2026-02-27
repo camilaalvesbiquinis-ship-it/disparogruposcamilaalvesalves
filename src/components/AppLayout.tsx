@@ -1,9 +1,13 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Bell } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user, signOut } = useAuth();
+  const initial = user?.email?.charAt(0).toUpperCase() || "U";
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -19,8 +23,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-destructive" />
               </Button>
               <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <span className="text-xs font-semibold text-primary">A</span>
+                <span className="text-xs font-semibold text-primary">{initial}</span>
               </div>
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={signOut}>
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">
