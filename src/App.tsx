@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import Dashboard from "./pages/Dashboard";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import GroupsPage from "./pages/GroupsPage";
@@ -34,6 +35,20 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function RoleProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole: "gerente" | "criador" }) {
+  const { role, isLoading, canCreate, canManage } = useUserRole();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+  const hasAccess = requiredRole === "gerente" ? canManage : canCreate;
+  if (!hasAccess) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
 function AuthRoute() {
   const { user, loading } = useAuth();
   if (loading) {
@@ -53,13 +68,13 @@ const AppRoutes = () => (
     <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/connections" element={<ProtectedRoute><ConnectionsPage /></ProtectedRoute>} />
     <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
-    <Route path="/broadcast" element={<ProtectedRoute><BroadcastPage /></ProtectedRoute>} />
+    <Route path="/broadcast" element={<ProtectedRoute><RoleProtectedRoute requiredRole="criador"><BroadcastPage /></RoleProtectedRoute></ProtectedRoute>} />
     <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-    <Route path="/schedules" element={<ProtectedRoute><SchedulesPage /></ProtectedRoute>} />
+    <Route path="/schedules" element={<ProtectedRoute><RoleProtectedRoute requiredRole="criador"><SchedulesPage /></RoleProtectedRoute></ProtectedRoute>} />
     <Route path="/security" element={<ProtectedRoute><SecurityPage /></ProtectedRoute>} />
     <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
     <Route path="/plans" element={<ProtectedRoute><PlansPage /></ProtectedRoute>} />
-    <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+    <Route path="/users" element={<ProtectedRoute><RoleProtectedRoute requiredRole="gerente"><UsersPage /></RoleProtectedRoute></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
