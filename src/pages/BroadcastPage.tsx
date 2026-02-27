@@ -5,8 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2, Upload, X } from "lucide-react";
+import { useState, useRef } from "react";
 import { useGroups } from "@/hooks/useGroups";
 import { useConnections } from "@/hooks/useConnections";
 import { useAddBroadcast } from "@/hooks/useBroadcasts";
@@ -33,6 +33,53 @@ const BroadcastPage = () => {
   const [mediaUrl, setMediaUrl] = useState("");
   const [connectionId, setConnectionId] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Imagem deve ter no máximo 10MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage
+        .from("broadcast-media")
+        .upload(fileName, file, { contentType: file.type });
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from("broadcast-media")
+        .getPublicUrl(fileName);
+
+      setMediaUrl(urlData.publicUrl);
+      setPreviewUrl(URL.createObjectURL(file));
+      setContentType("image");
+      toast.success("Imagem enviada!");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao enviar imagem");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeMedia = () => {
+    setMediaUrl("");
+    setPreviewUrl("");
+    setContentType("text");
+  };
 
   const toggleGroup = (id: string) => {
     setSelectedGroups((prev) =>
@@ -179,16 +226,40 @@ const BroadcastPage = () => {
                 ))}
               </div>
 
-              {(contentType === "image" || contentType === "video") && (
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">URL da mídia</Label>
+              {/* Image attachment */}
+              {previewUrl ? (
+                <div className="relative inline-block">
+                  <img src={previewUrl} alt="Anexo" className="h-32 rounded-lg object-cover border border-border" />
+                  <button
+                    onClick={removeMedia}
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:bg-destructive/80"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div>
                   <input
-                    type="url"
-                    placeholder="https://exemplo.com/imagem.jpg"
-                    className="w-full px-3 py-2 rounded-md bg-secondary/50 border border-border text-sm text-foreground"
-                    value={mediaUrl}
-                    onChange={(e) => setMediaUrl(e.target.value)}
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileUpload}
                   />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    {uploading ? "Enviando..." : "Anexar Imagem"}
+                  </Button>
                 </div>
               )}
 
