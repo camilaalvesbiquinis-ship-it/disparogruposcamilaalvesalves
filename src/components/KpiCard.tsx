@@ -15,9 +15,9 @@ export function KpiCard({ title, value, subtitle, icon, trend, className }: KpiC
     <div className={cn("card-glow rounded-xl p-5 transition-all duration-300 animate-slide-in", className)}>
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
-          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+          <p className="text-xs font-medium text-white/70 uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-white">{value}</p>
+          {subtitle && <p className="text-xs text-white/60">{subtitle}</p>}
           {trend && (
             <p className={cn("text-xs font-medium", trend.positive ? "text-success" : "text-destructive")}>
               {trend.positive ? "↑" : "↓"} {trend.value}
