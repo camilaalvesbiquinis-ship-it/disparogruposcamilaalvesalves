@@ -187,10 +187,15 @@ const BroadcastPage = () => {
 
         try {
           // Extract WhatsApp JID from group description (format: "WhatsApp ID: xxx")
-          const whatsappId = group.description?.replace("WhatsApp ID: ", "").trim();
+          let whatsappId = group.description?.replace("WhatsApp ID: ", "").trim();
           if (!whatsappId) {
             console.error(`Group ${group.name} has no WhatsApp ID`);
             continue;
+          }
+          // Remove "-group" suffix and append @g.us if needed
+          whatsappId = whatsappId.replace(/-group$/, "");
+          if (!whatsappId.endsWith("@g.us")) {
+            whatsappId = `${whatsappId}@g.us`;
           }
 
           const { error } = await supabase.functions.invoke("zapi-send", {

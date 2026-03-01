@@ -59,8 +59,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate WhatsApp group JID format
-    if (!/^\d+@g\.us$/.test(phone)) {
+    // Validate WhatsApp group JID format (digits-digits@g.us or digits@g.us)
+    if (!/^[\d-]+@g\.us$/.test(phone)) {
       return new Response(JSON.stringify({ error: "Invalid phone/group format. Expected: digits@g.us" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
