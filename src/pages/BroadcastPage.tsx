@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2, Upload, X } from "lucide-react";
+import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2, Upload, X, Sparkles } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useGroups } from "@/hooks/useGroups";
@@ -40,6 +40,7 @@ const BroadcastPage = () => {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
+  const [improving, setImproving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load cloned broadcast data from query params
@@ -108,6 +109,28 @@ const BroadcastPage = () => {
     setMediaUrl("");
     setPreviewUrl("");
     setContentType("text");
+  };
+
+  const handleImproveMessage = async () => {
+    if (!message.trim()) {
+      toast.error("Digite uma mensagem primeiro");
+      return;
+    }
+    setImproving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("improve-message", {
+        body: { message },
+      });
+      if (error) throw error;
+      if (data?.improved) {
+        setMessage(data.improved);
+        toast.success("Mensagem melhorada com IA!");
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao melhorar mensagem");
+    } finally {
+      setImproving(false);
+    }
   };
 
   const toggleGroup = (id: string) => {
@@ -336,17 +359,33 @@ const BroadcastPage = () => {
               />
               <p className="text-[10px] text-muted-foreground text-right">{message.length}/4096</p>
 
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span>Variáveis:</span>
-                {["{nome_grupo}", "{categoria}", "{data}"].map((v) => (
-                  <button
-                    key={v}
-                    className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono"
-                    onClick={() => setMessage((prev) => prev + v)}
-                  >
-                    {v}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span>Variáveis:</span>
+                  {["{nome_grupo}", "{categoria}", "{data}"].map((v) => (
+                    <button
+                      key={v}
+                      className="px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono"
+                      onClick={() => setMessage((prev) => prev + v)}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-primary/30 text-primary hover:bg-primary/10"
+                  onClick={handleImproveMessage}
+                  disabled={improving || !message.trim()}
+                >
+                  {improving ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  {improving ? "Melhorando..." : "Melhorar com IA"}
+                </Button>
               </div>
             </div>
 
