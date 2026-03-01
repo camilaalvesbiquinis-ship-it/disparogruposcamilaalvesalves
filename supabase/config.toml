@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.zapi-send]
 verify_jwt = false
+
+[functions.improve-message]
+verify_jwt = false
