@@ -146,6 +146,17 @@ const GroupsPage = () => {
             <p className="text-sm text-muted-foreground">{groups.length} grupos conectados</p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-border text-foreground"
+              onClick={() => {
+                navigator.clipboard.writeText(publicJoinLink);
+                toast.success("Link público copiado!");
+              }}
+            >
+              <Copy className="h-4 w-4 mr-2" /> Link Público
+            </Button>
             {connections.length > 0 && (
               <Button variant="outline" className="border-border text-foreground" onClick={handleImportStart}>
                 <Download className="h-4 w-4 mr-2" /> Importar do WhatsApp
