@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Users, MessageSquare, Send, Loader2, Trash2, Download, CheckCircle2 } from "lucide-react";
+import { Search, Plus, Users, MessageSquare, Send, Loader2, Trash2, Download, CheckCircle2, Link, Copy } from "lucide-react";
 import { useState } from "react";
 import { useGroups, useAddGroup, useDeleteGroup } from "@/hooks/useGroups";
 import { useConnections } from "@/hooks/useConnections";
@@ -47,6 +47,10 @@ const GroupsPage = () => {
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState<Enums<"group_category">>("outros");
   const [newConnectionId, setNewConnectionId] = useState("");
+  const [editLinkGroupId, setEditLinkGroupId] = useState<string | null>(null);
+  const [editLinkValue, setEditLinkValue] = useState("");
+
+  const publicJoinLink = `${window.location.origin}/join`;
 
   const filtered = groups.filter((g) => {
     const matchSearch = g.name.toLowerCase().includes(search.toLowerCase());
@@ -71,6 +75,21 @@ const GroupsPage = () => {
         onError: (e) => toast.error(e.message),
       }
     );
+  };
+
+  const handleSaveInviteLink = async (groupId: string) => {
+    const { error } = await supabase
+      .from("groups")
+      .update({ invite_link: editLinkValue || null } as any)
+      .eq("id", groupId);
+    if (error) {
+      toast.error("Erro ao salvar link");
+    } else {
+      toast.success("Link de convite salvo!");
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+    }
+    setEditLinkGroupId(null);
+    setEditLinkValue("");
   };
 
   const handleImportStart = async () => {
@@ -142,6 +161,17 @@ const GroupsPage = () => {
             <p className="text-sm text-muted-foreground">{groups.length} grupos conectados</p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-border text-foreground"
+              onClick={() => {
+                navigator.clipboard.writeText(publicJoinLink);
+                toast.success("Link público copiado!");
+              }}
+            >
+              <Copy className="h-4 w-4 mr-2" /> Link Público
+            </Button>
             {connections.length > 0 && (
               <Button variant="outline" className="border-border text-foreground" onClick={handleImportStart}>
                 <Download className="h-4 w-4 mr-2" /> Importar do WhatsApp
@@ -207,14 +237,36 @@ const GroupsPage = () => {
                   <span>{new Date(group.updated_at).toLocaleDateString("pt-BR")}</span>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1 text-xs border-border text-foreground hover:bg-secondary">
-                    <MessageSquare className="h-3 w-3 mr-1" /> Detalhes
-                  </Button>
-                  <Button size="sm" className="flex-1 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Send className="h-3 w-3 mr-1" /> Disparar
-                  </Button>
-                </div>
+                {editLinkGroupId === group.id ? (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="https://chat.whatsapp.com/..."
+                      value={editLinkValue}
+                      onChange={(e) => setEditLinkValue(e.target.value)}
+                      className="text-xs bg-secondary/50 border-border"
+                    />
+                    <Button size="sm" className="text-xs bg-primary text-primary-foreground" onClick={() => handleSaveInviteLink(group.id)}>
+                      Salvar
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs border-border text-foreground hover:bg-secondary"
+                      onClick={() => {
+                        setEditLinkGroupId(group.id);
+                        setEditLinkValue((group as any).invite_link || "");
+                      }}
+                    >
+                      <Link className="h-3 w-3 mr-1" /> {(group as any).invite_link ? "Editar Link" : "Add Link"}
+                    </Button>
+                    <Button size="sm" className="flex-1 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
+                      <Send className="h-3 w-3 mr-1" /> Disparar
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
