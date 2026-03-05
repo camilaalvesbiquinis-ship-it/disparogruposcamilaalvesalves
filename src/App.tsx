@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { ConsentBanner } from "@/components/ConsentBanner";
 import Dashboard from "./pages/Dashboard";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import GroupsPage from "./pages/GroupsPage";
@@ -18,6 +20,7 @@ import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
 import AuthPage from "./pages/AuthPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
+import MyDataPage from "./pages/MyDataPage";
 import JoinPage from "./pages/JoinPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -64,6 +67,11 @@ function AuthRoute() {
   return <AuthPage />;
 }
 
+function SessionManager({ children }: { children: React.ReactNode }) {
+  useSessionTimeout();
+  return <>{children}</>;
+}
+
 const AppRoutes = () => (
   <Routes>
     <Route path="/auth" element={<AuthRoute />} />
@@ -79,6 +87,7 @@ const AppRoutes = () => (
     <Route path="/plans" element={<ProtectedRoute><PlansPage /></ProtectedRoute>} />
     <Route path="/users" element={<ProtectedRoute><RoleProtectedRoute requiredRole="gerente"><UsersPage /></RoleProtectedRoute></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+    <Route path="/meus-dados" element={<ProtectedRoute><MyDataPage /></ProtectedRoute>} />
     <Route path="/admin/audit-logs" element={<ProtectedRoute><RoleProtectedRoute requiredRole="gerente"><AuditLogsPage /></RoleProtectedRoute></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
@@ -87,13 +96,16 @@ const AppRoutes = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      <SessionManager>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <ConsentBanner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </SessionManager>
     </AuthProvider>
   </QueryClientProvider>
 );
