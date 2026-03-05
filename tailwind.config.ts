@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Jost', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Nunito Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         serif: ['Cormorant Garamond', 'ui-serif', 'Georgia', 'serif'],
         mono: ['DM Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
         display: ['Cormorant Garamond', 'ui-serif', 'Georgia', 'serif'],
@@ -63,24 +63,12 @@ export default {
           'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))'
-        },
-        success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))'
-        },
-        warning: {
-          DEFAULT: 'hsl(var(--warning))',
-          foreground: 'hsl(var(--warning-foreground))'
-        },
-        info: {
-          DEFAULT: 'hsl(var(--info))',
-          foreground: 'hsl(var(--info-foreground))'
         }
       },
       borderRadius: {
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        md: 'var(--radius)',
+        sm: 'var(--radius)'
       },
       keyframes: {
         'accordion-down': {
@@ -90,30 +78,11 @@ export default {
         'accordion-up': {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' }
-        },
-        'pulse-glow': {
-          '0%, 100%': { opacity: '0.4' },
-          '50%': { opacity: '1' }
-        },
-        'slide-in': {
-          from: { opacity: '0', transform: 'translateY(10px)' },
-          to: { opacity: '1', transform: 'translateY(0)' }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-        'slide-in': 'slide-in 0.3s ease-out'
-      },
-      boxShadow: {
-        '2xs': 'var(--shadow-2xs)',
-        xs: 'var(--shadow-xs)',
-        sm: 'var(--shadow-sm)',
-        md: 'var(--shadow-md)',
-        lg: 'var(--shadow-lg)',
-        xl: 'var(--shadow-xl)',
-        '2xl': 'var(--shadow-2xl)'
+        'accordion-up': 'accordion-up 0.2s ease-out'
       }
     }
   },

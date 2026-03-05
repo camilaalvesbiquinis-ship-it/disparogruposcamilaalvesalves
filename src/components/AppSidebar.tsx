@@ -1,32 +1,12 @@
 import {
-  LayoutDashboard,
-  Smartphone,
-  Users,
-  Send,
-  Mail,
-  CalendarClock,
-  Shield,
-  BarChart3,
-  Settings,
-  CreditCard,
-  Zap,
-  UserCog,
-  ScrollText,
-  Database,
+  LayoutDashboard, Smartphone, Users, Send, Mail, CalendarClock,
+  Shield, BarChart3, Settings, CreditCard, Zap, UserCog, ScrollText, Database,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 
 const mainNav = [
@@ -53,23 +33,21 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" style={{ background: '#FFFFFF', borderRight: '1px solid #E8E2DC' }}>
-      <SidebarHeader className="px-6 pt-6 pb-5" style={{ borderBottom: '1px solid #F0EBE5' }}>
+    <Sidebar collapsible="icon" className="bg-card border-r">
+      <SidebarHeader className="px-6 pt-6 pb-5 border-b">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]" style={{ background: 'linear-gradient(135deg, #8B6E5A, #D4B9A8)' }}>
-            <Zap className="h-5 w-5 text-white" />
-          </div>
+          <Zap className="h-5 w-5 text-foreground shrink-0" />
           {!collapsed && (
-            <div>
-              <h2 className="text-[18px] font-display font-semibold tracking-[0.12em] uppercase" style={{ color: '#1C1917' }}>GroupFlow</h2>
-            </div>
+            <h2 className="text-lg font-display font-light tracking-[0.15em] uppercase text-foreground">
+              GroupFlow
+            </h2>
           )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.14em] font-sans font-medium px-5 pt-5 pb-1.5" style={{ color: '#C4B8B0' }}>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.15em] font-sans font-semibold px-5 pt-5 pb-1.5 text-muted-foreground">
             Principal
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -80,10 +58,10 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="nav-item-light text-[13px] font-sans font-normal mx-3 rounded-lg px-5 py-2.5 transition-all duration-200"
+                      className="nav-item-light text-[13px] font-sans mx-3 rounded-sm px-5 py-2.5 transition-colors duration-200"
                       activeClassName="nav-item-light-active"
                     >
-                      <item.icon className="mr-2.5 h-4 w-4" style={{ opacity: 0.7 }} />
+                      <item.icon className="mr-2.5 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -94,7 +72,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.14em] font-sans font-medium px-5 pt-5 pb-1.5" style={{ color: '#C4B8B0' }}>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.15em] font-sans font-semibold px-5 pt-5 pb-1.5 text-muted-foreground">
             Sistema
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -104,10 +82,10 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="nav-item-light text-[13px] font-sans font-normal mx-3 rounded-lg px-5 py-2.5 transition-all duration-200"
+                      className="nav-item-light text-[13px] font-sans mx-3 rounded-sm px-5 py-2.5 transition-colors duration-200"
                       activeClassName="nav-item-light-active"
                     >
-                      <item.icon className="mr-2.5 h-4 w-4" style={{ opacity: 0.7 }} />
+                      <item.icon className="mr-2.5 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -120,13 +98,13 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         {!collapsed && (
-          <div className="rounded-xl p-4" style={{ background: '#F7F4F0', border: '1px solid #E8E2DC' }}>
-            <p className="text-[11px] font-sans font-medium uppercase tracking-[0.07em]" style={{ color: '#A09890' }}>Plano Atual</p>
-            <p className="text-sm font-semibold mt-1" style={{ color: '#1C1917' }}>Pro</p>
+          <div className="rounded-sm p-4 bg-secondary border">
+            <p className="text-[11px] font-sans font-semibold uppercase tracking-[0.07em] text-muted-foreground">Plano Atual</p>
+            <p className="text-sm font-semibold mt-1 text-foreground">Pro</p>
             <div className="mt-3 progress-bar-track">
               <div className="progress-bar-fill" style={{ width: '75%' }} />
             </div>
-            <p className="mt-1.5 text-[11px] font-data" style={{ color: '#A09890' }}>75% do limite usado</p>
+            <p className="mt-1.5 text-[11px] font-data text-muted-foreground">75% do limite usado</p>
           </div>
         )}
       </SidebarFooter>
