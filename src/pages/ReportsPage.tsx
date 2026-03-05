@@ -41,10 +41,10 @@ const topGroups = [
 ];
 
 const tooltipStyle = {
-  backgroundColor: "#ffffff",
-  border: "1px solid rgba(0,0,0,0.08)",
+  backgroundColor: "#0f1117",
+  border: "1px solid rgba(255,255,255,0.08)",
   borderRadius: "8px",
-  color: "#1e293b",
+  color: "#F1F5F9",
   fontSize: 12,
   fontFamily: "'DM Mono', monospace",
   padding: "10px 14px",
@@ -56,14 +56,14 @@ const ReportsPage = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground font-display">Relatórios</h1>
-            <p className="text-sm text-muted-foreground">Análise de performance e métricas</p>
+            <h1 className="text-2xl font-display font-semibold uppercase tracking-[0.08em]" style={{ color: '#F1F5F9' }}>Relatórios</h1>
+            <p className="text-[13px] font-sans" style={{ color: '#94a3b8' }}>Análise de performance e métricas</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="border-border text-muted-foreground font-data text-[12px] tracking-[0.05em]">
+            <Button variant="outline" size="sm" className="font-data text-[12px] tracking-[0.05em]" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#94a3b8' }}>
               <Download className="h-3.5 w-3.5 mr-1.5" /> CSV
             </Button>
-            <Button variant="outline" size="sm" className="border-border text-muted-foreground font-data text-[12px] tracking-[0.05em]">
+            <Button variant="outline" size="sm" className="font-data text-[12px] tracking-[0.05em]" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: '#94a3b8' }}>
               <Download className="h-3.5 w-3.5 mr-1.5" /> PDF
             </Button>
           </div>
@@ -81,11 +81,11 @@ const ReportsPage = () => {
             <h3 className="section-title">Mensagens por Mês</h3>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" />
-                <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#475569', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="enviadas" fill="hsl(239, 84%, 67%)" radius={[5, 5, 0, 0]} opacity={0.85} />
+                <Bar dataKey="enviadas" fill="#6366f1" radius={[5, 5, 0, 0]} opacity={0.85} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -94,11 +94,11 @@ const ReportsPage = () => {
             <h3 className="section-title">Crescimento de Membros</h3>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={memberGrowth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" />
-                <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#475569', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Line type="monotone" dataKey="membros" stroke="hsl(38, 92%, 50%)" strokeWidth={2} dot={{ fill: "hsl(38, 92%, 50%)" }} />
+                <Line type="monotone" dataKey="membros" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b" }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -106,15 +106,15 @@ const ReportsPage = () => {
 
         <div className="card-glow p-6">
           <h3 className="section-title flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-primary" />
+            <BarChart3 className="h-4 w-4" style={{ color: '#8B6E5A' }} />
             Grupos Mais Ativos
           </h3>
           <div className="space-y-3">
             {topGroups.map((g, i) => (
               <div key={i} className="flex items-center gap-4">
-                <span className="text-[11px] text-muted-foreground font-data w-6">#{i + 1}</span>
+                <span className="text-[11px] font-data w-6" style={{ color: '#475569' }}>#{i + 1}</span>
                 <div className="flex-1">
-                  <p className="text-sm text-foreground">{g.name}</p>
+                  <p className="text-sm font-sans" style={{ color: '#F1F5F9' }}>{g.name}</p>
                   <div className="mt-1 progress-bar-track">
                     <div
                       className="progress-bar-fill"
@@ -123,8 +123,8 @@ const ReportsPage = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-data font-semibold text-foreground">{g.msgs} <span className="text-muted-foreground text-[11px]">msgs</span></p>
-                  <p className="text-[11px] font-data text-muted-foreground">{g.members} membros</p>
+                  <p className="text-sm font-data font-semibold" style={{ color: '#F1F5F9' }}>{g.msgs} <span className="text-[11px]" style={{ color: '#64748b' }}>msgs</span></p>
+                  <p className="text-[11px] font-data" style={{ color: '#64748b' }}>{g.members} membros</p>
                 </div>
               </div>
             ))}

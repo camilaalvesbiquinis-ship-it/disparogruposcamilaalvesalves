@@ -37,32 +37,32 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#080a0f' }}>
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center space-y-3">
           <div className="flex h-[36px] w-[36px] mx-auto items-center justify-center rounded-[10px]" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
             <Zap className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-lg font-bold text-foreground font-display">GroupFlow</h1>
-          <p className="text-[11px] font-data text-muted-foreground tracking-[0.1em] uppercase">
+          <h1 className="text-lg font-display font-semibold uppercase tracking-[0.1em]" style={{ color: '#F1F5F9' }}>GroupFlow</h1>
+          <p className="text-[11px] font-data tracking-[0.1em] uppercase" style={{ color: '#475569' }}>
             {isLogin ? "Entre na sua conta" : "Crie sua conta"}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="card-glow p-6 space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-[11px] font-data text-muted-foreground uppercase tracking-[0.05em]">Email</Label>
+            <Label className="text-[12px] font-sans font-medium uppercase tracking-[0.05em]" style={{ color: '#64748b' }}>Email</Label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               required
-              className="bg-secondary/50 border-border"
+              style={{ background: '#0d0f14', border: '1px solid rgba(255,255,255,0.08)', color: '#F1F5F9' }}
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[11px] font-data text-muted-foreground uppercase tracking-[0.05em]">Senha</Label>
+            <Label className="text-[12px] font-sans font-medium uppercase tracking-[0.05em]" style={{ color: '#64748b' }}>Senha</Label>
             <Input
               type="password"
               value={password}
@@ -70,12 +70,13 @@ const AuthPage = () => {
               placeholder="••••••••"
               required
               minLength={6}
-              className="bg-secondary/50 border-border"
+              style={{ background: '#0d0f14', border: '1px solid rgba(255,255,255,0.08)', color: '#F1F5F9' }}
             />
           </div>
           <Button
             type="submit"
-            className="w-full bg-accent/15 text-accent hover:bg-accent/25 font-data text-[13px] tracking-[0.05em]"
+            className="w-full text-[13px] font-sans font-semibold uppercase tracking-[0.08em]"
+            style={{ background: '#8B6E5A', color: '#FFFFFF' }}
             disabled={loading}
           >
             {loading ? (
@@ -89,11 +90,12 @@ const AuthPage = () => {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-sm" style={{ color: '#94a3b8' }}>
           {isLogin ? "Não tem conta?" : "Já tem conta?"}{" "}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:underline font-medium"
+            className="hover:underline font-medium"
+            style={{ color: '#D4B9A8' }}
           >
             {isLogin ? "Criar conta" : "Fazer login"}
           </button>
