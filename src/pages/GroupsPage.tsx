@@ -77,6 +77,21 @@ const GroupsPage = () => {
     );
   };
 
+  const handleSaveInviteLink = async (groupId: string) => {
+    const { error } = await supabase
+      .from("groups")
+      .update({ invite_link: editLinkValue || null } as any)
+      .eq("id", groupId);
+    if (error) {
+      toast.error("Erro ao salvar link");
+    } else {
+      toast.success("Link de convite salvo!");
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+    }
+    setEditLinkGroupId(null);
+    setEditLinkValue("");
+  };
+
   const handleImportStart = async () => {
     setImportStep("loading");
     setImportDialogOpen(true);
