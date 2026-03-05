@@ -15,7 +15,6 @@ import {
   Database,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -82,10 +81,8 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="text-[13px] font-sans font-normal mx-2 rounded-lg px-5 py-2.5 transition-all duration-200"
-                      style={{ color: '#475569' }}
-                      activeClassName="font-medium"
-                      activeStyle={{ background: 'rgba(139,110,90,0.15)', color: '#D4B9A8', borderLeft: '2px solid #8B6E5A' }}
+                      className="nav-item-dark text-[13px] font-sans font-normal mx-2 rounded-lg px-5 py-2.5 transition-all duration-200"
+                      activeClassName="nav-item-dark-active"
                     >
                       <item.icon className="mr-2.5 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -108,10 +105,8 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="text-[13px] font-sans font-normal mx-2 rounded-lg px-5 py-2.5 transition-all duration-200"
-                      style={{ color: '#475569' }}
-                      activeClassName="font-medium"
-                      activeStyle={{ background: 'rgba(139,110,90,0.15)', color: '#D4B9A8', borderLeft: '2px solid #8B6E5A' }}
+                      className="nav-item-dark text-[13px] font-sans font-normal mx-2 rounded-lg px-5 py-2.5 transition-all duration-200"
+                      activeClassName="nav-item-dark-active"
                     >
                       <item.icon className="mr-2.5 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
