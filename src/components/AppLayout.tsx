@@ -10,34 +10,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full" style={{ background: '#F7F4F0' }}>
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 flex items-center justify-between px-8 sticky top-0 z-10" style={{ background: '#FFFFFF', borderBottom: '1px solid #E8E2DC', boxShadow: '0 1px 0 #E8E2DC' }}>
-            <div className="flex items-center gap-2">
-              <SidebarTrigger style={{ color: '#A09890' }} />
-            </div>
+          <header className="h-16 flex items-center justify-between px-6 border-b bg-card">
+            <SidebarTrigger className="text-muted-foreground" />
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative" style={{ color: '#A09890' }}>
+              <Button variant="ghost" size="icon" className="text-muted-foreground">
                 <Bell className="h-4 w-4" />
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full" style={{ background: '#922B21' }} />
               </Button>
-              <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: '#F5EDE5' }}>
-                <span className="text-xs font-semibold font-data" style={{ color: '#8B6E5A' }}>{initial}</span>
+              <div className="h-8 w-8 rounded-full flex items-center justify-center bg-secondary">
+                <span className="text-xs font-semibold font-data text-foreground">{initial}</span>
               </div>
-              <Button variant="ghost" size="icon" style={{ color: '#A09890' }} onClick={signOut}>
+              <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={signOut}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </header>
-          <main className="flex-1 p-7 overflow-auto max-w-[1400px] mx-auto w-full">
-            {children}
+          <main className="flex-1 py-8 px-6 overflow-auto">
+            <div className="max-w-4xl mx-auto">
+              {children}
+            </div>
           </main>
-          <footer style={{ borderTop: '1px solid #F0EBE5', padding: '16px 0' }}>
-            <p className="text-center font-data text-[11px] tracking-[0.15em] uppercase" style={{ color: '#C4B8B0' }}>
-              GroupFlow · WhatsApp Manager
-            </p>
-          </footer>
         </div>
       </div>
     </SidebarProvider>

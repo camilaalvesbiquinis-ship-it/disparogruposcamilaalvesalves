@@ -12,19 +12,22 @@ interface KpiCardProps {
 
 export function KpiCard({ title, value, subtitle, icon, trend, className }: KpiCardProps) {
   return (
-    <div className={cn("kpi-card animate-slide-in", className)}>
+    <div className={cn("kpi-card", className)}>
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <p className="text-[11px] font-sans font-medium uppercase tracking-[0.07em]" style={{ color: '#A09890' }}>{title}</p>
-          <p className="text-[32px] font-data font-medium leading-none" style={{ color: '#1C1917' }}>{value}</p>
-          {subtitle && <p className="text-[14px] font-data" style={{ color: '#A09890' }}>{subtitle}</p>}
+          <p className="text-[11px] font-sans font-semibold uppercase tracking-[0.07em] text-muted-foreground">{title}</p>
+          <p className="text-[28px] font-data font-medium leading-none text-foreground">{value}</p>
+          {subtitle && <p className="text-[13px] font-data text-muted-foreground">{subtitle}</p>}
           {trend && (
-            <span className={trend.positive ? "badge-trend-up" : "badge-trend-down"}>
+            <span className={cn(
+              "inline-block text-[11px] font-data font-medium px-2 py-0.5 rounded-sm border",
+              trend.positive ? "text-foreground bg-secondary" : "text-destructive bg-destructive/5 border-destructive/20"
+            )}>
               {trend.positive ? "▲" : "▼"} {trend.value}
             </span>
           )}
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: '#F5EDE5', color: '#8B6E5A' }}>
+        <div className="flex h-9 w-9 items-center justify-center text-muted-foreground">
           {icon}
         </div>
       </div>

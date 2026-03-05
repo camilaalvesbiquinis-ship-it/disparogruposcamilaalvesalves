@@ -2,76 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Nunito+Sans:wght@300;400;600;700&family=DM+Mono:wght@400;500&display=swap');
 
 @layer base {
   :root {
-    --background: 30 13% 95%;
-    --foreground: 20 12% 10%;
+    --background: 40 33% 97%;
+    --foreground: 30 7% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 12% 10%;
+    --card-foreground: 30 7% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 12% 10%;
+    --popover-foreground: 30 7% 16%;
 
-    --primary: 20 10% 15%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 30 7% 16%;
+    --primary-foreground: 40 33% 97%;
 
-    --secondary: 30 15% 93%;
-    --secondary-foreground: 20 5% 40%;
+    --secondary: 30 15% 94%;
+    --secondary-foreground: 30 7% 16%;
 
-    --muted: 30 15% 93%;
-    --muted-foreground: 25 6% 60%;
+    --muted: 30 15% 94%;
+    --muted-foreground: 30 7% 50%;
 
-    --accent: 25 22% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 30 15% 94%;
+    --accent-foreground: 30 7% 16%;
 
-    --destructive: 4 67% 35%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 153 40% 30%;
-    --success-foreground: 0 0% 100%;
+    --border: 30 15% 89%;
+    --input: 30 15% 89%;
+    --ring: 30 7% 16%;
 
-    --warning: 46 86% 26%;
-    --warning-foreground: 0 0% 100%;
-
-    --info: 204 63% 28%;
-    --info-foreground: 0 0% 100%;
-
-    --border: 28 14% 87%;
-    --input: 28 14% 87%;
-    --ring: 25 22% 45%;
-
-    --radius: 0.75rem;
+    --radius: 2px;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 25 6% 60%;
-    --sidebar-primary: 25 22% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 24% 93%;
-    --sidebar-accent-foreground: 20 12% 10%;
-    --sidebar-border: 28 14% 87%;
-    --sidebar-ring: 25 22% 45%;
+    --sidebar-foreground: 30 7% 50%;
+    --sidebar-primary: 30 7% 16%;
+    --sidebar-primary-foreground: 40 33% 97%;
+    --sidebar-accent: 30 15% 94%;
+    --sidebar-accent-foreground: 30 7% 16%;
+    --sidebar-border: 30 15% 89%;
+    --sidebar-ring: 30 7% 16%;
 
-    --chart-1: 25 22% 45%;
-    --chart-2: 20 10% 15%;
-    --chart-3: 153 40% 30%;
-    --chart-4: 46 86% 26%;
-    --chart-5: 4 67% 35%;
-
-    --font-display: 'Cormorant Garamond', serif;
-    --font-sans: 'Jost', sans-serif;
-    --font-mono: 'DM Mono', monospace;
-
-    --shadow-2xs: 0 1px 2px 0 rgba(44,36,32,0.03);
-    --shadow-xs: 0 1px 3px 0 rgba(44,36,32,0.04);
-    --shadow-sm: 0 1px 3px 0 rgba(44,36,32,0.06), 0 1px 2px -1px rgba(44,36,32,0.04);
-    --shadow: 0 1px 3px 0 rgba(44,36,32,0.08), 0 1px 2px -1px rgba(44,36,32,0.05);
-    --shadow-md: 0 4px 6px -1px rgba(44,36,32,0.07), 0 2px 4px -2px rgba(44,36,32,0.04);
-    --shadow-lg: 0 10px 15px -3px rgba(44,36,32,0.08), 0 4px 6px -4px rgba(44,36,32,0.03);
-    --shadow-xl: 0 20px 25px -5px rgba(44,36,32,0.1), 0 8px 10px -6px rgba(44,36,32,0.04);
-    --shadow-2xl: 0 25px 50px -12px rgba(44,36,32,0.15);
+    --chart-1: 30 7% 16%;
+    --chart-2: 30 7% 50%;
+    --chart-3: 30 15% 70%;
+    --chart-4: 30 15% 89%;
+    --chart-5: 0 72% 51%;
   }
 }
 
@@ -82,12 +60,15 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Jost', sans-serif;
+    font-family: 'Nunito Sans', sans-serif;
     font-weight: 400;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
   }
 }
 
@@ -96,126 +77,71 @@
     font-family: 'Cormorant Garamond', serif;
   }
 
+  .font-body {
+    font-family: 'Nunito Sans', sans-serif;
+  }
+
   .font-data {
     font-family: 'DM Mono', monospace;
   }
 
   .card-glow {
-    background: #FFFFFF;
-    border: 1px solid #E8E2DC;
-    border-radius: 12px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  .card-glow:hover {
-    border-color: #D4B9A8;
-    box-shadow: 0 4px 20px rgba(44,36,32,0.07);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 2px;
   }
 
   .kpi-card {
-    background: #FFFFFF;
-    border: 1px solid #E8E2DC;
-    border-radius: 14px;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 2px;
     padding: 24px;
-    transition: all 0.25s;
+    transition: border-color 0.2s;
   }
 
   .kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(44,36,32,0.1);
-    border-color: #D4B9A8;
-  }
-
-  .badge-trend-up {
-    background: #EAF4EF;
-    color: #2D6A4F;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.05em;
-    border: 1px solid #A8D5B5;
-  }
-
-  .badge-trend-down {
-    background: #FDECEA;
-    color: #922B21;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.05em;
-    border: 1px solid #F5C0BB;
+    border-color: hsl(var(--muted-foreground));
   }
 
   .section-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: 11px;
-    font-weight: 400;
-    color: #A09890;
-    letter-spacing: 0.12em;
+    font-weight: 300;
+    color: hsl(var(--muted-foreground));
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     margin-bottom: 20px;
   }
 
   .progress-bar-track {
-    height: 3px;
-    background: #E8E2DC;
-    border-radius: 3px;
+    height: 2px;
+    background: hsl(var(--border));
   }
 
   .progress-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #8B6E5A, #D4B9A8);
-    border-radius: 3px;
+    background: hsl(var(--foreground));
     transition: width 0.8s ease;
   }
 
-  .live-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #2D6A4F;
-    animation: pulse-live 2s infinite;
-  }
-
   .nav-item-light {
-    color: #A09890;
+    color: hsl(var(--muted-foreground));
   }
 
   .nav-item-light:hover {
-    background: #F7F4F0;
-    color: #6B6560;
+    background: hsl(var(--accent));
+    color: hsl(var(--foreground));
   }
 
   .nav-item-light-active {
-    background: #F5EDE5 !important;
-    color: #2C2420 !important;
-    border-left: 2px solid #8B6E5A;
-    font-weight: 500;
-  }
-
-  @keyframes pulse-live {
-    0% { box-shadow: 0 0 0 0 rgba(45, 106, 79, 0.3); }
-    70% { box-shadow: 0 0 0 8px rgba(45, 106, 79, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(45, 106, 79, 0); }
+    background: hsl(var(--accent)) !important;
+    color: hsl(var(--foreground)) !important;
+    font-weight: 600;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: #F7F4F0;
-}
-::-webkit-scrollbar-thumb {
-  background: #D4B9A8;
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #8B6E5A;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: hsl(var(--background)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
