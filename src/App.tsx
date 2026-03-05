@@ -67,6 +67,7 @@ function AuthRoute() {
 const AppRoutes = () => (
   <Routes>
     <Route path="/auth" element={<AuthRoute />} />
+    <Route path="/join" element={<JoinPage />} />
     <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/connections" element={<ProtectedRoute><ConnectionsPage /></ProtectedRoute>} />
     <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
