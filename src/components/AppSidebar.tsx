@@ -12,6 +12,7 @@ import {
   Zap,
   UserCog,
   ScrollText,
+  Database,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -44,6 +45,7 @@ const systemNav = [
   { title: "Segurança", url: "/security", icon: Shield },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
   { title: "Planos", url: "/plans", icon: CreditCard },
+  { title: "Meus Dados", url: "/meus-dados", icon: Database },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
