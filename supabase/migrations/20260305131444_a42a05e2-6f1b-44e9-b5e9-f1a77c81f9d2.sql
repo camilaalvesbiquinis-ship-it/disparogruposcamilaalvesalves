@@ -1,0 +1,1 @@
+ALTER TABLE public.groups ALTER COLUMN max_members SET DEFAULT 1000;
