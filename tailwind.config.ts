@@ -14,10 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['DM Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['Jost', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        serif: ['Cormorant Garamond', 'ui-serif', 'Georgia', 'serif'],
         mono: ['DM Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-        display: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
+        display: ['Cormorant Garamond', 'ui-serif', 'Georgia', 'serif'],
         data: ['DM Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {

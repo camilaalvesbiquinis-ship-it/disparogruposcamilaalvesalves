@@ -10,22 +10,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full" style={{ background: '#080a0f' }}>
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 flex items-center justify-between border-b border-border px-8 bg-card sticky top-0 z-10">
+          <header className="h-16 flex items-center justify-between px-8 sticky top-0 z-10" style={{ background: '#080a0f', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+              <SidebarTrigger style={{ color: '#64748b' }} />
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="icon" className="relative" style={{ color: '#64748b' }}>
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-destructive" />
               </Button>
-              <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center">
-                <span className="text-xs font-semibold text-primary font-data">{initial}</span>
+              <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(139,110,90,0.2)' }}>
+                <span className="text-xs font-semibold font-data" style={{ color: '#D4B9A8' }}>{initial}</span>
               </div>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={signOut}>
+              <Button variant="ghost" size="icon" style={{ color: '#64748b' }} onClick={signOut}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -33,8 +33,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <main className="flex-1 p-7 overflow-auto max-w-[1400px] mx-auto w-full">
             {children}
           </main>
-          <footer className="border-t border-border py-4">
-            <p className="text-center font-data text-[11px] text-muted-foreground tracking-[0.15em] uppercase">
+          <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '16px 0' }}>
+            <p className="text-center font-data text-[11px] tracking-[0.15em] uppercase" style={{ color: '#1e293b' }}>
               GroupFlow · WhatsApp Manager
             </p>
           </footer>

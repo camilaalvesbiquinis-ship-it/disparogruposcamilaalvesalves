@@ -61,9 +61,9 @@ const Dashboard = () => {
 
   const statusLabels: Record<string, { label: string; color: string }> = {
     sent: { label: "Entregue", color: "badge-trend-up" },
-    sending: { label: "Enviando", color: "bg-info/12 text-info" },
-    scheduled: { label: "Agendado", color: "bg-accent/15 text-accent" },
-    draft: { label: "Rascunho", color: "bg-muted text-muted-foreground" },
+    sending: { label: "Enviando", color: "" },
+    scheduled: { label: "Agendado", color: "" },
+    draft: { label: "Rascunho", color: "" },
     failed: { label: "Falhou", color: "badge-trend-down" },
   };
 
@@ -81,8 +81,8 @@ const Dashboard = () => {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground font-display">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Visão geral do seu sistema de disparos</p>
+          <h1 className="text-2xl font-display font-semibold uppercase tracking-[0.08em]" style={{ color: '#F1F5F9' }}>Dashboard</h1>
+          <p className="text-[13px] font-sans" style={{ color: '#94a3b8' }}>Visão geral do seu sistema de disparos</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -134,17 +134,17 @@ const Dashboard = () => {
               {broadcasts.map((b) => {
                 const s = statusLabels[b.status] ?? statusLabels.draft;
                 return (
-                  <div key={b.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                  <div key={b.id} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div className="flex items-center gap-3">
-                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      <MessageSquare className="h-4 w-4" style={{ color: '#64748b' }} />
                       <div>
-                        <p className="text-sm font-medium text-foreground">{b.title}</p>
-                        <p className="text-[11px] font-data text-muted-foreground">
+                        <p className="text-sm font-sans font-medium" style={{ color: '#F1F5F9' }}>{b.title}</p>
+                        <p className="text-[11px] font-data" style={{ color: '#64748b' }}>
                           {new Date(b.created_at).toLocaleDateString("pt-BR")} · {b.sent_count} enviadas · {b.total_groups} grupos
                         </p>
                       </div>
                     </div>
-                    <span className={`text-[11px] font-data font-bold px-2 py-0.5 rounded ${s.color}`}>
+                    <span className={`text-[11px] font-data font-bold px-2 py-0.5 rounded ${s.color}`} style={!s.color ? { background: 'rgba(139,110,90,0.12)', color: '#D4B9A8' } : {}}>
                       {s.label}
                     </span>
                   </div>
