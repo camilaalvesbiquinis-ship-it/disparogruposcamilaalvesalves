@@ -222,14 +222,36 @@ const GroupsPage = () => {
                   <span>{new Date(group.updated_at).toLocaleDateString("pt-BR")}</span>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1 text-xs border-border text-foreground hover:bg-secondary">
-                    <MessageSquare className="h-3 w-3 mr-1" /> Detalhes
-                  </Button>
-                  <Button size="sm" className="flex-1 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Send className="h-3 w-3 mr-1" /> Disparar
-                  </Button>
-                </div>
+                {editLinkGroupId === group.id ? (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="https://chat.whatsapp.com/..."
+                      value={editLinkValue}
+                      onChange={(e) => setEditLinkValue(e.target.value)}
+                      className="text-xs bg-secondary/50 border-border"
+                    />
+                    <Button size="sm" className="text-xs bg-primary text-primary-foreground" onClick={() => handleSaveInviteLink(group.id)}>
+                      Salvar
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs border-border text-foreground hover:bg-secondary"
+                      onClick={() => {
+                        setEditLinkGroupId(group.id);
+                        setEditLinkValue((group as any).invite_link || "");
+                      }}
+                    >
+                      <Link className="h-3 w-3 mr-1" /> {(group as any).invite_link ? "Editar Link" : "Add Link"}
+                    </Button>
+                    <Button size="sm" className="flex-1 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
+                      <Send className="h-3 w-3 mr-1" /> Disparar
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
