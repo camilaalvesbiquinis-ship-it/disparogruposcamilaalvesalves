@@ -60,11 +60,11 @@ const Dashboard = () => {
   const pausedSchedules = schedules.length - activeSchedules;
 
   const statusLabels: Record<string, { label: string; color: string }> = {
-    sent: { label: "Entregue", color: "bg-success/20 text-success" },
-    sending: { label: "Enviando", color: "bg-info/20 text-info" },
-    scheduled: { label: "Agendado", color: "bg-warning/20 text-warning" },
+    sent: { label: "Entregue", color: "badge-trend-up" },
+    sending: { label: "Enviando", color: "bg-info/12 text-info" },
+    scheduled: { label: "Agendado", color: "bg-accent/15 text-accent" },
     draft: { label: "Rascunho", color: "bg-muted text-muted-foreground" },
-    failed: { label: "Falhou", color: "bg-destructive/20 text-destructive" },
+    failed: { label: "Falhou", color: "badge-trend-down" },
   };
 
   if (isLoading) {
@@ -81,7 +81,7 @@ const Dashboard = () => {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-foreground font-display">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Visão geral do seu sistema de disparos</p>
         </div>
 
@@ -128,8 +128,8 @@ const Dashboard = () => {
         </div>
 
         {broadcasts.length > 0 && (
-          <div className="card-glow rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Disparos Recentes</h3>
+          <div className="card-glow p-6">
+            <h3 className="section-title">Disparos Recentes</h3>
             <div className="space-y-3">
               {broadcasts.map((b) => {
                 const s = statusLabels[b.status] ?? statusLabels.draft;
@@ -139,12 +139,12 @@ const Dashboard = () => {
                       <MessageSquare className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium text-foreground">{b.title}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[11px] font-data text-muted-foreground">
                           {new Date(b.created_at).toLocaleDateString("pt-BR")} · {b.sent_count} enviadas · {b.total_groups} grupos
                         </p>
                       </div>
                     </div>
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${s.color}`}>
+                    <span className={`text-[11px] font-data font-bold px-2 py-0.5 rounded ${s.color}`}>
                       {s.label}
                     </span>
                   </div>

@@ -12,16 +12,16 @@ interface KpiCardProps {
 
 export function KpiCard({ title, value, subtitle, icon, trend, className }: KpiCardProps) {
   return (
-    <div className={cn("card-glow rounded-xl p-5 transition-all duration-300 animate-slide-in", className)}>
+    <div className={cn("kpi-card animate-slide-in", className)}>
       <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
-          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        <div className="space-y-2">
+          <p className="text-[11px] font-data text-muted-foreground uppercase tracking-[0.08em]">{title}</p>
+          <p className="text-[30px] font-data font-medium text-foreground leading-none tracking-tight">{value}</p>
+          {subtitle && <p className="text-[12px] font-data text-muted-foreground">{subtitle}</p>}
           {trend && (
-            <p className={cn("text-xs font-medium", trend.positive ? "text-success" : "text-destructive")}>
-              {trend.positive ? "↑" : "↓"} {trend.value}
-            </p>
+            <span className={trend.positive ? "badge-trend-up" : "badge-trend-down"}>
+              {trend.positive ? "▲" : "▼"} {trend.value}
+            </span>
           )}
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">

@@ -58,13 +58,13 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary">
-            <Zap className="h-5 w-5 text-primary-foreground" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
+            <Zap className="h-5 w-5 text-white" />
           </div>
           {!collapsed && (
             <div>
-              <h2 className="text-sm font-bold text-foreground">GroupFlow</h2>
-              <p className="text-[10px] text-muted-foreground">WhatsApp Manager</p>
+              <h2 className="text-lg font-bold text-foreground font-display">GroupFlow</h2>
+              <p className="text-[11px] text-muted-foreground font-data tracking-[0.1em] uppercase">WhatsApp Manager</p>
             </div>
           )}
         </div>
@@ -72,7 +72,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-widest">
+          <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-widest font-data">
             Principal
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -83,8 +83,8 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                      activeClassName="bg-primary/10 text-primary font-medium"
+                      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-200"
+                      activeClassName="bg-accent/15 text-accent border border-accent/30 font-medium"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -97,7 +97,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-widest">
+          <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-widest font-data">
             Sistema
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -107,8 +107,8 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                      activeClassName="bg-primary/10 text-primary font-medium"
+                      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-200"
+                      activeClassName="bg-accent/15 text-accent border border-accent/30 font-medium"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -123,13 +123,13 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         {!collapsed && (
-          <div className="rounded-lg bg-secondary p-3">
-            <p className="text-[10px] font-medium text-muted-foreground">Plano Atual</p>
-            <p className="text-sm font-semibold text-foreground">Pro</p>
-            <div className="mt-2 h-1.5 rounded-full bg-muted">
-              <div className="h-full w-3/4 rounded-full bg-primary" />
+          <div className="rounded-xl bg-secondary p-4 border border-border">
+            <p className="text-[11px] font-data text-muted-foreground uppercase tracking-[0.08em]">Plano Atual</p>
+            <p className="text-sm font-semibold text-foreground mt-1">Pro</p>
+            <div className="mt-3 progress-bar-track">
+              <div className="progress-bar-fill" style={{ width: '75%' }} />
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">75% do limite usado</p>
+            <p className="mt-1.5 text-[11px] font-data text-muted-foreground">75% do limite usado</p>
           </div>
         )}
       </SidebarFooter>
