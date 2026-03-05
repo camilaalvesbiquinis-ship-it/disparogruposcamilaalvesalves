@@ -18,7 +18,7 @@ const JoinPage = () => {
         if (error) throw error;
 
         const available = (groups || []).find(
-          (g: any) => g.member_count < (g.max_members || 256)
+          (g: any) => g.member_count < (g.max_members || 1000)
         );
 
         if (available?.invite_link) {
