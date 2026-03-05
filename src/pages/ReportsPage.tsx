@@ -41,11 +41,13 @@ const topGroups = [
 ];
 
 const tooltipStyle = {
-  backgroundColor: "hsl(228, 15%, 11%)",
-  border: "1px solid hsl(228, 12%, 18%)",
+  backgroundColor: "#ffffff",
+  border: "1px solid rgba(0,0,0,0.08)",
   borderRadius: "8px",
-  color: "hsl(220, 20%, 92%)",
+  color: "#1e293b",
   fontSize: 12,
+  fontFamily: "'DM Mono', monospace",
+  padding: "10px 14px",
 };
 
 const ReportsPage = () => {
@@ -54,14 +56,14 @@ const ReportsPage = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Relatórios</h1>
+            <h1 className="text-2xl font-bold text-foreground font-display">Relatórios</h1>
             <p className="text-sm text-muted-foreground">Análise de performance e métricas</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="border-border text-foreground">
+            <Button variant="outline" size="sm" className="border-border text-muted-foreground font-data text-[12px] tracking-[0.05em]">
               <Download className="h-3.5 w-3.5 mr-1.5" /> CSV
             </Button>
-            <Button variant="outline" size="sm" className="border-border text-foreground">
+            <Button variant="outline" size="sm" className="border-border text-muted-foreground font-data text-[12px] tracking-[0.05em]">
               <Download className="h-3.5 w-3.5 mr-1.5" /> PDF
             </Button>
           </div>
@@ -74,55 +76,55 @@ const ReportsPage = () => {
           <KpiCard title="Taxa Saída" value="2.1%" icon={<TrendingDown className="h-5 w-5" />} trend={{ value: "-0.3%", positive: true }} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="card-glow rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Mensagens por Mês</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="card-glow p-6">
+            <h3 className="section-title">Mensagens por Mês</h3>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(228, 12%, 18%)" />
-                <XAxis dataKey="month" stroke="hsl(220, 10%, 50%)" fontSize={12} />
-                <YAxis stroke="hsl(220, 10%, 50%)" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="enviadas" fill="hsl(245, 58%, 58%)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="enviadas" fill="hsl(239, 84%, 67%)" radius={[5, 5, 0, 0]} opacity={0.85} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="card-glow rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Crescimento de Membros</h3>
+          <div className="card-glow p-6">
+            <h3 className="section-title">Crescimento de Membros</h3>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={memberGrowth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(228, 12%, 18%)" />
-                <XAxis dataKey="month" stroke="hsl(220, 10%, 50%)" fontSize={12} />
-                <YAxis stroke="hsl(220, 10%, 50%)" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Line type="monotone" dataKey="membros" stroke="hsl(210, 85%, 55%)" strokeWidth={2} dot={{ fill: "hsl(210, 85%, 55%)" }} />
+                <Line type="monotone" dataKey="membros" stroke="hsl(38, 92%, 50%)" strokeWidth={2} dot={{ fill: "hsl(38, 92%, 50%)" }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="card-glow rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+        <div className="card-glow p-6">
+          <h3 className="section-title flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-primary" />
             Grupos Mais Ativos
           </h3>
           <div className="space-y-3">
             {topGroups.map((g, i) => (
               <div key={i} className="flex items-center gap-4">
-                <span className="text-xs text-muted-foreground font-mono w-6">#{i + 1}</span>
+                <span className="text-[11px] text-muted-foreground font-data w-6">#{i + 1}</span>
                 <div className="flex-1">
                   <p className="text-sm text-foreground">{g.name}</p>
-                  <div className="mt-1 h-1.5 rounded-full bg-muted">
+                  <div className="mt-1 progress-bar-track">
                     <div
-                      className="h-full rounded-full bg-primary"
+                      className="progress-bar-fill"
                       style={{ width: `${(g.msgs / 890) * 100}%` }}
                     />
                   </div>
                 </div>
-                <div className="text-right text-xs">
-                  <p className="text-foreground font-medium">{g.msgs} msgs</p>
-                  <p className="text-muted-foreground">{g.members} membros</p>
+                <div className="text-right">
+                  <p className="text-sm font-data font-semibold text-foreground">{g.msgs} <span className="text-muted-foreground text-[11px]">msgs</span></p>
+                  <p className="text-[11px] font-data text-muted-foreground">{g.members} membros</p>
                 </div>
               </div>
             ))}

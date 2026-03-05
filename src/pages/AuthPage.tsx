@@ -39,19 +39,19 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-8">
-        <div className="text-center space-y-2">
-          <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-xl bg-primary glow-primary">
-            <Zap className="h-6 w-6 text-primary-foreground" />
+        <div className="text-center space-y-3">
+          <div className="flex h-[36px] w-[36px] mx-auto items-center justify-center rounded-[10px]" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
+            <Zap className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">GroupFlow</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-lg font-bold text-foreground font-display">GroupFlow</h1>
+          <p className="text-[11px] font-data text-muted-foreground tracking-[0.1em] uppercase">
             {isLogin ? "Entre na sua conta" : "Crie sua conta"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="card-glow rounded-xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="card-glow p-6 space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Email</Label>
+            <Label className="text-[11px] font-data text-muted-foreground uppercase tracking-[0.05em]">Email</Label>
             <Input
               type="email"
               value={email}
@@ -62,7 +62,7 @@ const AuthPage = () => {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Senha</Label>
+            <Label className="text-[11px] font-data text-muted-foreground uppercase tracking-[0.05em]">Senha</Label>
             <Input
               type="password"
               value={password}
@@ -75,7 +75,7 @@ const AuthPage = () => {
           </div>
           <Button
             type="submit"
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            className="w-full bg-accent/15 text-accent hover:bg-accent/25 font-data text-[13px] tracking-[0.05em]"
             disabled={loading}
           >
             {loading ? (
