@@ -233,7 +233,9 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          invite_link: string | null
           is_active: boolean
+          max_members: number
           member_count: number
           name: string
           updated_at: string
@@ -245,7 +247,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          invite_link?: string | null
           is_active?: boolean
+          max_members?: number
           member_count?: number
           name: string
           updated_at?: string
@@ -257,7 +261,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          invite_link?: string | null
           is_active?: boolean
+          max_members?: number
           member_count?: number
           name?: string
           updated_at?: string
