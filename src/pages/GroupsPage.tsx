@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Users, MessageSquare, Send, Loader2, Trash2, Download, CheckCircle2 } from "lucide-react";
+import { Search, Plus, Users, MessageSquare, Send, Loader2, Trash2, Download, CheckCircle2, Link, Copy } from "lucide-react";
 import { useState } from "react";
 import { useGroups, useAddGroup, useDeleteGroup } from "@/hooks/useGroups";
 import { useConnections } from "@/hooks/useConnections";
@@ -47,6 +47,10 @@ const GroupsPage = () => {
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState<Enums<"group_category">>("outros");
   const [newConnectionId, setNewConnectionId] = useState("");
+  const [editLinkGroupId, setEditLinkGroupId] = useState<string | null>(null);
+  const [editLinkValue, setEditLinkValue] = useState("");
+
+  const publicJoinLink = `${window.location.origin}/join`;
 
   const filtered = groups.filter((g) => {
     const matchSearch = g.name.toLowerCase().includes(search.toLowerCase());
