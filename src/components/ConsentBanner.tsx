@@ -81,25 +81,25 @@ export function ConsentBanner() {
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-50 p-4">
-      <div className="max-w-2xl mx-auto rounded-xl border border-border bg-card shadow-lg p-6 space-y-4">
+      <div className="max-w-2xl mx-auto rounded-xl p-6 space-y-4" style={{ background: '#FFFFFF', border: '1px solid #E8E2DC', boxShadow: '0 8px 28px rgba(44,36,32,0.12)', borderLeft: '3px solid #8B6E5A' }}>
         <div className="flex items-start gap-3">
-          <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+          <Shield className="h-5 w-5 mt-0.5 shrink-0" style={{ color: '#8B6E5A' }} />
           <div>
-            <h3 className="font-semibold text-foreground text-sm font-[var(--font-serif)]">
+            <h3 className="text-[14px] font-display font-semibold" style={{ color: '#1C1917' }}>
               Privacidade e Proteção de Dados
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-[12px] font-sans font-light mt-1" style={{ color: '#6B6560' }}>
               Utilizamos dados para melhorar sua experiência. Conforme a LGPD, você pode gerenciar suas preferências abaixo.
             </p>
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-0">
           {consentTypes.map((ct) => (
-            <div key={ct.id} className="flex items-center justify-between py-1.5">
+            <div key={ct.id} className="flex items-center justify-between py-2.5" style={{ borderBottom: '1px solid #F0EBE5' }}>
               <div>
-                <p className="text-xs font-medium text-foreground">{ct.label}</p>
-                <p className="text-[11px] text-muted-foreground">{ct.description}</p>
+                <p className="text-[13px] font-sans font-medium" style={{ color: '#1C1917' }}>{ct.label}</p>
+                <p className="text-[11px] font-sans font-light" style={{ color: '#A09890' }}>{ct.description}</p>
               </div>
               <Switch
                 checked={consents[ct.id]}
@@ -111,13 +111,13 @@ export function ConsentBanner() {
         </div>
 
         <div className="flex gap-2 justify-end">
-          <Button variant="outline" size="sm" onClick={handleRejectOptional} className="text-xs">
+          <Button variant="outline" size="sm" onClick={handleRejectOptional} className="text-[12px] font-sans font-medium" style={{ border: '1px solid #E8E2DC', color: '#6B6560' }}>
             Apenas essenciais
           </Button>
-          <Button variant="outline" size="sm" onClick={handleSavePreferences} className="text-xs">
+          <Button variant="outline" size="sm" onClick={handleSavePreferences} className="text-[12px] font-sans font-medium" style={{ border: '1px solid #2C2420', color: '#2C2420' }}>
             Salvar preferências
           </Button>
-          <Button size="sm" onClick={handleAcceptAll} className="text-xs bg-primary text-primary-foreground">
+          <Button size="sm" onClick={handleAcceptAll} className="text-[12px] font-sans font-semibold uppercase tracking-[0.05em]" style={{ background: '#2C2420', color: '#FFFFFF' }}>
             Aceitar todos
           </Button>
         </div>
