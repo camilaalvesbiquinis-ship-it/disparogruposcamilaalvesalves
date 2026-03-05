@@ -18,14 +18,7 @@ const plans = [
     price: "R$ 297",
     period: "/mês",
     description: "Para equipes em crescimento",
-    features: [
-      "3 números",
-      "Grupos ilimitados",
-      "Agendamentos ilimitados",
-      "Relatórios avançados",
-      "Suporte prioritário",
-      "Menções em massa",
-    ],
+    features: ["3 números", "Grupos ilimitados", "Agendamentos ilimitados", "Relatórios avançados", "Suporte prioritário", "Menções em massa"],
     current: true,
     popular: true,
   },
@@ -34,14 +27,7 @@ const plans = [
     price: "Sob consulta",
     period: "",
     description: "Para grandes operações",
-    features: [
-      "Números ilimitados",
-      "API aberta",
-      "White label",
-      "Webhooks",
-      "Gestor dedicado",
-      "SLA garantido",
-    ],
+    features: ["Números ilimitados", "API aberta", "White label", "Webhooks", "Gestor dedicado", "SLA garantido"],
     current: false,
     popular: false,
   },
@@ -52,8 +38,8 @@ const PlansPage = () => {
     <AppLayout>
       <div className="space-y-8">
         <div className="text-center max-w-lg mx-auto">
-          <h1 className="text-2xl font-bold text-foreground">Planos e Preços</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-[28px] font-display font-semibold" style={{ color: '#1C1917' }}>Planos e Preços</h1>
+          <p className="text-[13px] font-sans font-light mt-1" style={{ color: '#6B6560' }}>
             Escolha o plano ideal para a sua operação
           </p>
         </div>
@@ -62,50 +48,43 @@ const PlansPage = () => {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`rounded-xl p-6 space-y-5 transition-all duration-300 ${
-                plan.popular
-                  ? "card-glow border-primary/40 glow-primary relative"
-                  : "card-glow"
-              }`}
+              className="rounded-xl p-6 space-y-5 transition-all duration-300 relative"
+              style={{
+                background: '#FFFFFF',
+                border: plan.popular ? '2px solid #8B6E5A' : '1px solid #E8E2DC',
+              }}
             >
               {plan.popular && (
-                <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px]">
+                <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-sans font-semibold uppercase tracking-[0.07em]" style={{ background: '#2C2420', color: '#FFFFFF' }}>
                   Mais Popular
                 </Badge>
               )}
 
               <div className="text-center space-y-1">
-                <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  {plan.name === "Enterprise" ? (
-                    <Building2 className="h-5 w-5" />
-                  ) : (
-                    <Zap className="h-5 w-5" />
-                  )}
+                <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-lg" style={{ background: '#F5EDE5', color: '#8B6E5A' }}>
+                  {plan.name === "Enterprise" ? <Building2 className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
                 </div>
-                <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground">{plan.description}</p>
+                <h3 className="text-[18px] font-display font-semibold" style={{ color: '#1C1917' }}>{plan.name}</h3>
+                <p className="text-[12px] font-sans font-light" style={{ color: '#A09890' }}>{plan.description}</p>
               </div>
 
               <div className="text-center">
-                <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                <span className="text-sm text-muted-foreground">{plan.period}</span>
+                <span className="text-[32px] font-data font-medium" style={{ color: '#1C1917' }}>{plan.price}</span>
+                <span className="text-[13px] font-sans" style={{ color: '#A09890' }}>{plan.period}</span>
               </div>
 
               <ul className="space-y-2.5">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-foreground">
-                    <Check className="h-4 w-4 text-success shrink-0" />
+                  <li key={f} className="flex items-center gap-2 text-[13px] font-sans" style={{ color: '#1C1917' }}>
+                    <Check className="h-4 w-4 shrink-0" style={{ color: '#2D6A4F' }} />
                     {f}
                   </li>
                 ))}
               </ul>
 
               <Button
-                className={`w-full ${
-                  plan.current
-                    ? "bg-secondary text-secondary-foreground"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
-                }`}
+                className="w-full text-[13px] font-sans font-semibold uppercase tracking-[0.07em]"
+                style={plan.current ? { background: '#F2EDE8', color: '#6B6560' } : { background: '#2C2420', color: '#FFFFFF' }}
                 disabled={plan.current}
               >
                 {plan.current ? "Plano Atual" : "Assinar"}

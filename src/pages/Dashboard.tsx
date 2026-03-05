@@ -59,19 +59,19 @@ const Dashboard = () => {
   const activeSchedules = schedules.filter((s) => s.is_active).length;
   const pausedSchedules = schedules.length - activeSchedules;
 
-  const statusLabels: Record<string, { label: string; color: string }> = {
-    sent: { label: "Entregue", color: "badge-trend-up" },
-    sending: { label: "Enviando", color: "" },
-    scheduled: { label: "Agendado", color: "" },
-    draft: { label: "Rascunho", color: "" },
-    failed: { label: "Falhou", color: "badge-trend-down" },
+  const statusLabels: Record<string, { label: string; className: string }> = {
+    sent: { label: "Entregue", className: "badge-trend-up" },
+    sending: { label: "Enviando", className: "" },
+    scheduled: { label: "Agendado", className: "" },
+    draft: { label: "Rascunho", className: "" },
+    failed: { label: "Falhou", className: "badge-trend-down" },
   };
 
   if (isLoading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+          <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#8B6E5A' }} />
         </div>
       </AppLayout>
     );
@@ -81,8 +81,8 @@ const Dashboard = () => {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-display font-semibold uppercase tracking-[0.08em]" style={{ color: '#F1F5F9' }}>Dashboard</h1>
-          <p className="text-[13px] font-sans" style={{ color: '#94a3b8' }}>Visão geral do seu sistema de disparos</p>
+          <h1 className="text-[28px] font-display font-semibold" style={{ color: '#1C1917' }}>Dashboard</h1>
+          <p className="text-[13px] font-sans font-light" style={{ color: '#6B6560' }}>Visão geral do seu sistema de disparos</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -130,23 +130,27 @@ const Dashboard = () => {
         {broadcasts.length > 0 && (
           <div className="card-glow p-6">
             <h3 className="section-title">Disparos Recentes</h3>
-            <div className="space-y-3">
+            <div className="space-y-0">
               {broadcasts.map((b) => {
                 const s = statusLabels[b.status] ?? statusLabels.draft;
                 return (
-                  <div key={b.id} className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div key={b.id} className="flex items-center justify-between py-3.5" style={{ borderBottom: '1px solid #F0EBE5' }}>
                     <div className="flex items-center gap-3">
-                      <MessageSquare className="h-4 w-4" style={{ color: '#64748b' }} />
+                      <MessageSquare className="h-4 w-4" style={{ color: '#A09890' }} />
                       <div>
-                        <p className="text-sm font-sans font-medium" style={{ color: '#F1F5F9' }}>{b.title}</p>
-                        <p className="text-[11px] font-data" style={{ color: '#64748b' }}>
+                        <p className="text-[13px] font-sans font-medium" style={{ color: '#1C1917' }}>{b.title}</p>
+                        <p className="text-[11px] font-data" style={{ color: '#A09890' }}>
                           {new Date(b.created_at).toLocaleDateString("pt-BR")} · {b.sent_count} enviadas · {b.total_groups} grupos
                         </p>
                       </div>
                     </div>
-                    <span className={`text-[11px] font-data font-bold px-2 py-0.5 rounded ${s.color}`} style={!s.color ? { background: 'rgba(139,110,90,0.12)', color: '#D4B9A8' } : {}}>
-                      {s.label}
-                    </span>
+                    {s.className ? (
+                      <span className={s.className}>{s.label}</span>
+                    ) : (
+                      <span className="text-[11px] font-data font-medium px-2.5 py-1 rounded-full" style={{ background: '#F2EDE8', color: '#6B6560', border: '1px solid #E8E2DC' }}>
+                        {s.label}
+                      </span>
+                    )}
                   </div>
                 );
               })}

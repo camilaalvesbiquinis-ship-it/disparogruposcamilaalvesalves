@@ -37,32 +37,33 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#080a0f' }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#F7F4F0' }}>
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center space-y-3">
-          <div className="flex h-[36px] w-[36px] mx-auto items-center justify-center rounded-[10px]" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
+          <div className="flex h-[36px] w-[36px] mx-auto items-center justify-center rounded-[10px]" style={{ background: 'linear-gradient(135deg, #8B6E5A, #D4B9A8)' }}>
             <Zap className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-lg font-display font-semibold uppercase tracking-[0.1em]" style={{ color: '#F1F5F9' }}>GroupFlow</h1>
-          <p className="text-[11px] font-data tracking-[0.1em] uppercase" style={{ color: '#475569' }}>
+          <h1 className="text-[20px] font-display font-semibold uppercase tracking-[0.12em]" style={{ color: '#1C1917' }}>GroupFlow</h1>
+          <p className="text-[11px] font-sans font-medium uppercase tracking-[0.1em]" style={{ color: '#A09890' }}>
             {isLogin ? "Entre na sua conta" : "Crie sua conta"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="card-glow p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="card-glow p-6 space-y-5">
           <div className="space-y-1.5">
-            <Label className="text-[12px] font-sans font-medium uppercase tracking-[0.05em]" style={{ color: '#64748b' }}>Email</Label>
+            <Label className="text-[11px] font-sans font-medium uppercase tracking-[0.07em]" style={{ color: '#A09890' }}>Email</Label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               required
-              style={{ background: '#0d0f14', border: '1px solid rgba(255,255,255,0.08)', color: '#F1F5F9' }}
+              style={{ background: '#FAF8F5', border: '1px solid #E8E2DC', color: '#1C1917' }}
+              className="placeholder:text-[#C4B8B0] focus:border-[#8B6E5A] focus:ring-[#8B6E5A]/12"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[12px] font-sans font-medium uppercase tracking-[0.05em]" style={{ color: '#64748b' }}>Senha</Label>
+            <Label className="text-[11px] font-sans font-medium uppercase tracking-[0.07em]" style={{ color: '#A09890' }}>Senha</Label>
             <Input
               type="password"
               value={password}
@@ -70,13 +71,14 @@ const AuthPage = () => {
               placeholder="••••••••"
               required
               minLength={6}
-              style={{ background: '#0d0f14', border: '1px solid rgba(255,255,255,0.08)', color: '#F1F5F9' }}
+              style={{ background: '#FAF8F5', border: '1px solid #E8E2DC', color: '#1C1917' }}
+              className="placeholder:text-[#C4B8B0] focus:border-[#8B6E5A] focus:ring-[#8B6E5A]/12"
             />
           </div>
           <Button
             type="submit"
-            className="w-full text-[13px] font-sans font-semibold uppercase tracking-[0.08em]"
-            style={{ background: '#8B6E5A', color: '#FFFFFF' }}
+            className="w-full text-[13px] font-sans font-semibold uppercase tracking-[0.07em]"
+            style={{ background: '#2C2420', color: '#FFFFFF' }}
             disabled={loading}
           >
             {loading ? (
@@ -90,12 +92,12 @@ const AuthPage = () => {
           </Button>
         </form>
 
-        <p className="text-center text-sm" style={{ color: '#94a3b8' }}>
+        <p className="text-center text-[13px] font-sans" style={{ color: '#6B6560' }}>
           {isLogin ? "Não tem conta?" : "Já tem conta?"}{" "}
           <button
             onClick={() => setIsLogin(!isLogin)}
             className="hover:underline font-medium"
-            style={{ color: '#D4B9A8' }}
+            style={{ color: '#8B6E5A' }}
           >
             {isLogin ? "Criar conta" : "Fazer login"}
           </button>
