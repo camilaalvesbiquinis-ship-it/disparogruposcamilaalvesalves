@@ -115,20 +115,21 @@ Deno.serve(async (req) => {
     // Validate contentType
     const validTypes = ["text", "image", "video", "pdf", "catalog", "link"];
     const safeContentType = validTypes.includes(contentType) ? contentType : "text";
+    const effectiveContentType = mediaUrl && safeContentType === "text" ? "image" : safeContentType;
 
     let endpoint = "send-text";
     let payload: Record<string, unknown> = { phone: targetPhone, message: message || "" };
 
-    if (safeContentType === "image" && mediaUrl) {
+    if (effectiveContentType === "image" && mediaUrl) {
       endpoint = "send-image";
       payload = { phone: targetPhone, image: mediaUrl, caption: message || "" };
-    } else if (safeContentType === "video" && mediaUrl) {
+    } else if (effectiveContentType === "video" && mediaUrl) {
       endpoint = "send-video";
       payload = { phone: targetPhone, video: mediaUrl, caption: message || "" };
-    } else if (safeContentType === "pdf" && mediaUrl) {
+    } else if (effectiveContentType === "pdf" && mediaUrl) {
       endpoint = "send-document/pdf";
       payload = { phone: targetPhone, document: mediaUrl, fileName: "document.pdf" };
-    } else if (safeContentType === "link") {
+    } else if (effectiveContentType === "link") {
       endpoint = "send-link";
       payload = { phone: targetPhone, message: message || "", image: "", linkUrl: mediaUrl || message, title: "", linkDescription: "" };
     }
