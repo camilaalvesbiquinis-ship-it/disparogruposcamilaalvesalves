@@ -155,6 +155,7 @@ const BroadcastPage = () => {
       return;
     }
     const sanitizedMessage = sanitizeText(message);
+    const effectiveContentType = mediaUrl && contentType === "text" ? "image" : contentType;
 
     setSending(true);
     try {
@@ -162,7 +163,7 @@ const BroadcastPage = () => {
       const broadcast = await addBroadcast.mutateAsync({
         title: sanitizedMessage.slice(0, 50) || "Disparo",
         content: sanitizedMessage,
-        content_type: contentType as any,
+        content_type: effectiveContentType as any,
         media_url: mediaUrl || null,
         connection_id: connectionId || null,
         delay_seconds: delay[0],
@@ -176,7 +177,7 @@ const BroadcastPage = () => {
         action: "edit",
         tableName: "broadcasts",
         recordId: broadcast.id,
-        details: { groups: selectedGroups.length, contentType },
+        details: { groups: selectedGroups.length, contentType: effectiveContentType },
       });
 
       // Send to each group with delay
@@ -213,7 +214,7 @@ const BroadcastPage = () => {
             body: {
               phone: whatsappId,
               message: sanitizedMessage,
-              contentType,
+              contentType: effectiveContentType,
               mediaUrl: mediaUrl || undefined,
               mentionAll,
             },
