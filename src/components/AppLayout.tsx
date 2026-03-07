@@ -4,7 +4,7 @@ import { Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   const { user, signOut } = useAuth();
   const initial = user?.email?.charAt(0).toUpperCase() || "U";
 
