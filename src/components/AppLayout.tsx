@@ -28,7 +28,7 @@ export function AppLayout({ children, wide = false }: { children: React.ReactNod
             </div>
           </header>
           <main className="flex-1 py-8 px-6 overflow-auto">
-            <div className="max-w-4xl mx-auto">
+            <div className={wide ? "max-w-6xl mx-auto" : "max-w-4xl mx-auto"}>
               {children}
             </div>
           </main>
