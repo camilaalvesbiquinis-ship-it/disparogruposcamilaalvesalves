@@ -65,9 +65,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate WhatsApp group JID format (digits-digits@g.us or digits@g.us)
-    if (!/^[\d-]+@g\.us$/.test(phone)) {
-      return new Response(JSON.stringify({ error: "Invalid phone/group format. Expected: digits@g.us" }), {
+    // Validate WhatsApp group identifier format
+    const targetPhone = phone.trim();
+    const validGroupId =
+      /^[\d-]+@g\.us$/.test(targetPhone) ||
+      /^\d+-\d+$/.test(targetPhone) ||
+      /^\d+-group$/.test(targetPhone);
+
+    if (!validGroupId) {
+      return new Response(JSON.stringify({ error: "Invalid phone/group format. Expected: xxxx@g.us, xxxx-xxxx, or xxxx-group" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -111,20 +117,20 @@ Deno.serve(async (req) => {
     const safeContentType = validTypes.includes(contentType) ? contentType : "text";
 
     let endpoint = "send-text";
-    let payload: Record<string, unknown> = { phone, message: message || "" };
+    let payload: Record<string, unknown> = { phone: targetPhone, message: message || "" };
 
     if (safeContentType === "image" && mediaUrl) {
       endpoint = "send-image";
-      payload = { phone, image: mediaUrl, caption: message || "" };
+      payload = { phone: targetPhone, image: mediaUrl, caption: message || "" };
     } else if (safeContentType === "video" && mediaUrl) {
       endpoint = "send-video";
-      payload = { phone, video: mediaUrl, caption: message || "" };
+      payload = { phone: targetPhone, video: mediaUrl, caption: message || "" };
     } else if (safeContentType === "pdf" && mediaUrl) {
       endpoint = "send-document/pdf";
-      payload = { phone, document: mediaUrl, fileName: "document.pdf" };
+      payload = { phone: targetPhone, document: mediaUrl, fileName: "document.pdf" };
     } else if (safeContentType === "link") {
       endpoint = "send-link";
-      payload = { phone, message: message || "", image: "", linkUrl: mediaUrl || message, title: "", linkDescription: "" };
+      payload = { phone: targetPhone, message: message || "", image: "", linkUrl: mediaUrl || message, title: "", linkDescription: "" };
     }
 
     if (mentionAll) {
