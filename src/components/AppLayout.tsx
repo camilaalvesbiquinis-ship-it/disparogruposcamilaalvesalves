@@ -4,7 +4,7 @@ import { Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   const { user, signOut } = useAuth();
   const initial = user?.email?.charAt(0).toUpperCase() || "U";
 
@@ -28,7 +28,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           <main className="flex-1 py-8 px-6 overflow-auto">
-            <div className="max-w-4xl mx-auto">
+            <div className={wide ? "max-w-6xl mx-auto" : "max-w-4xl mx-auto"}>
               {children}
             </div>
           </main>
