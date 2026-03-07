@@ -241,7 +241,7 @@ const BroadcastPage = () => {
   };
 
   return (
-    <AppLayout>
+    <AppLayout wide>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Novo Disparo</h1>
