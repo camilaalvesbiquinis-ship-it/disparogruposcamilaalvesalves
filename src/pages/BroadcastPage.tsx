@@ -186,16 +186,27 @@ const BroadcastPage = () => {
         if (!group) continue;
 
         try {
-          // Extract WhatsApp JID from group description (format: "WhatsApp ID: xxx")
-          let whatsappId = group.description?.replace("WhatsApp ID: ", "").trim();
-          if (!whatsappId) {
+          // Extract WhatsApp group identifier from group description (format: "WhatsApp ID: xxx")
+          const rawWhatsAppId = group.description?.replace("WhatsApp ID:", "").trim();
+          if (!rawWhatsAppId) {
             console.error(`Group ${group.name} has no WhatsApp ID`);
             continue;
           }
-          // Remove "-group" suffix and append @g.us if needed
-          whatsappId = whatsappId.replace(/-group$/, "");
-          if (!whatsappId.endsWith("@g.us")) {
-            whatsappId = `${whatsappId}@g.us`;
+
+          // Support canonical JID, legacy numeric-hyphen and Z-API "-group" formats
+          let whatsappId = rawWhatsAppId;
+          const isSupportedFormat =
+            /^[\d-]+@g\.us$/.test(whatsappId) ||
+            /^\d+-\d+$/.test(whatsappId) ||
+            /^\d+-group$/.test(whatsappId);
+
+          if (!isSupportedFormat) {
+            if (/^[\d-]+$/.test(whatsappId)) {
+              whatsappId = `${whatsappId}@g.us`;
+            } else {
+              console.error(`Group ${group.name} has invalid WhatsApp ID format: ${rawWhatsAppId}`);
+              continue;
+            }
           }
 
           const { error } = await supabase.functions.invoke("zapi-send", {
