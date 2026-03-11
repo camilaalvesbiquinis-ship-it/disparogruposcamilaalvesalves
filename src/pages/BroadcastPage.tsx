@@ -566,6 +566,42 @@ const BroadcastPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Schedule Dialog */}
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Agendar Envio</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              A mensagem será enviada para {selectedGroups.length} grupo(s) na data e horário selecionados.
+            </p>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Data e Horário</Label>
+              <Input
+                type="datetime-local"
+                value={scheduleDate}
+                onChange={(e) => setScheduleDate(e.target.value)}
+                className="bg-secondary/50 border-border"
+                min={new Date().toISOString().slice(0, 16)}
+              />
+            </div>
+            <Button
+              className="w-full bg-primary text-primary-foreground"
+              onClick={handleSchedule}
+              disabled={scheduling || !scheduleDate}
+            >
+              {scheduling ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Clock className="h-4 w-4 mr-2" />
+              )}
+              {scheduling ? "Agendando..." : "Confirmar Agendamento"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
