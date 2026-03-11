@@ -482,7 +482,8 @@ const BroadcastPage = () => {
               <Button
                 variant="outline"
                 className="flex-1 border-border text-foreground"
-                onClick={() => navigate("/schedules")}
+                disabled={selectedGroups.length === 0 || (!message && !mediaUrl)}
+                onClick={() => setScheduleDialogOpen(true)}
               >
                 <Clock className="h-4 w-4 mr-2" />
                 Agendar
