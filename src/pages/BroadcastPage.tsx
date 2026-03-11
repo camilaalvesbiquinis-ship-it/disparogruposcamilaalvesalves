@@ -259,6 +259,68 @@ const BroadcastPage = () => {
       setSending(false);
     }
   };
+  const handleSchedule = async () => {
+    if (!scheduleDate) {
+      toast.error("Selecione uma data e horário");
+      return;
+    }
+    if (selectedGroups.length === 0 || (!message && !mediaUrl)) {
+      toast.error("Selecione grupos e escreva uma mensagem");
+      return;
+    }
+    const sanitizedMessage = sanitizeText(message);
+    const effectiveContentType = mediaUrl && contentType === "text" ? "image" : contentType;
+    const scheduledAt = new Date(scheduleDate).toISOString();
+
+    setScheduling(true);
+    try {
+      const broadcast = await addBroadcast.mutateAsync({
+        title: sanitizedMessage.slice(0, 50) || "Disparo Agendado",
+        content: sanitizedMessage,
+        content_type: effectiveContentType as any,
+        media_url: mediaUrl || null,
+        connection_id: connectionId || null,
+        delay_seconds: delay[0],
+        total_groups: selectedGroups.length,
+        mention_mode: mentionAll ? "all" : "none",
+        status: "scheduled",
+      });
+
+      await addSchedule.mutateAsync({
+        title: sanitizedMessage.slice(0, 50) || "Disparo Agendado",
+        content: sanitizedMessage,
+        content_type: effectiveContentType as any,
+        connection_id: connectionId || null,
+        frequency: "once",
+        scheduled_at: scheduledAt,
+        next_run_at: scheduledAt,
+      });
+
+      const groupInserts = selectedGroups.map((groupId) => ({
+        broadcast_id: broadcast.id,
+        group_id: groupId,
+      }));
+      await supabase.from("broadcast_groups").insert(groupInserts);
+
+      await logAuditAction({
+        action: "schedule",
+        tableName: "broadcasts",
+        recordId: broadcast.id,
+        details: { groups: selectedGroups.length, scheduledAt },
+      });
+
+      toast.success("Mensagem agendada com sucesso!");
+      setScheduleDialogOpen(false);
+      setScheduleDate("");
+      setSelectedGroups([]);
+      setMessage("");
+      setMediaUrl("");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao agendar");
+    } finally {
+      setScheduling(false);
+    }
+  };
 
   return (
     <AppLayout wide>
