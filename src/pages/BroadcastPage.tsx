@@ -472,7 +472,11 @@ const BroadcastPage = () => {
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 border-border text-foreground">
+              <Button
+                variant="outline"
+                className="flex-1 border-border text-foreground"
+                onClick={() => navigate("/schedules")}
+              >
                 <Clock className="h-4 w-4 mr-2" />
                 Agendar
               </Button>
