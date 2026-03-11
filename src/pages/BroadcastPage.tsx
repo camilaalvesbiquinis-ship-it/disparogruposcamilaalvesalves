@@ -29,6 +29,7 @@ const BroadcastPage = () => {
   const { data: connections = [] } = useConnections();
   const addBroadcast = useAddBroadcast();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [contentType, setContentType] = useState("text");
