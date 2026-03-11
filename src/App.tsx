@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
-import { ConsentBanner } from "@/components/ConsentBanner";
+
 import Dashboard from "./pages/Dashboard";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import GroupsPage from "./pages/GroupsPage";
