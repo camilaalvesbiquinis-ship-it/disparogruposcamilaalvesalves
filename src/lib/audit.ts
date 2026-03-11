@@ -14,7 +14,8 @@ export type AuditAction =
   | "logout"
   | "role_change"
   | "consent_change"
-  | "data_request";
+  | "data_request"
+  | "schedule";
 
 interface AuditParams {
   action: AuditAction;

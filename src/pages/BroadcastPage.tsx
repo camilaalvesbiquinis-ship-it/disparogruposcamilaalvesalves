@@ -5,9 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2, Upload, X, Sparkles } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAddSchedule } from "@/hooks/useSchedules";
 import { useGroups } from "@/hooks/useGroups";
 import { useConnections } from "@/hooks/useConnections";
 import { useAddBroadcast } from "@/hooks/useBroadcasts";
@@ -28,6 +31,7 @@ const BroadcastPage = () => {
   const { data: groups = [] } = useGroups();
   const { data: connections = [] } = useConnections();
   const addBroadcast = useAddBroadcast();
+  const addSchedule = useAddSchedule();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -42,6 +46,9 @@ const BroadcastPage = () => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [improving, setImproving] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduling, setScheduling] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load cloned broadcast data from query params
@@ -250,6 +257,68 @@ const BroadcastPage = () => {
       toast.error(e instanceof Error ? e.message : "Erro ao enviar");
     } finally {
       setSending(false);
+    }
+  };
+  const handleSchedule = async () => {
+    if (!scheduleDate) {
+      toast.error("Selecione uma data e horário");
+      return;
+    }
+    if (selectedGroups.length === 0 || (!message && !mediaUrl)) {
+      toast.error("Selecione grupos e escreva uma mensagem");
+      return;
+    }
+    const sanitizedMessage = sanitizeText(message);
+    const effectiveContentType = mediaUrl && contentType === "text" ? "image" : contentType;
+    const scheduledAt = new Date(scheduleDate).toISOString();
+
+    setScheduling(true);
+    try {
+      const broadcast = await addBroadcast.mutateAsync({
+        title: sanitizedMessage.slice(0, 50) || "Disparo Agendado",
+        content: sanitizedMessage,
+        content_type: effectiveContentType as any,
+        media_url: mediaUrl || null,
+        connection_id: connectionId || null,
+        delay_seconds: delay[0],
+        total_groups: selectedGroups.length,
+        mention_mode: mentionAll ? "all" : "none",
+        status: "scheduled",
+      });
+
+      await addSchedule.mutateAsync({
+        title: sanitizedMessage.slice(0, 50) || "Disparo Agendado",
+        content: sanitizedMessage,
+        content_type: effectiveContentType as any,
+        connection_id: connectionId || null,
+        frequency: "once",
+        scheduled_at: scheduledAt,
+        next_run_at: scheduledAt,
+      });
+
+      const groupInserts = selectedGroups.map((groupId) => ({
+        broadcast_id: broadcast.id,
+        group_id: groupId,
+      }));
+      await supabase.from("broadcast_groups").insert(groupInserts);
+
+      await logAuditAction({
+        action: "schedule",
+        tableName: "broadcasts",
+        recordId: broadcast.id,
+        details: { groups: selectedGroups.length, scheduledAt },
+      });
+
+      toast.success("Mensagem agendada com sucesso!");
+      setScheduleDialogOpen(false);
+      setScheduleDate("");
+      setSelectedGroups([]);
+      setMessage("");
+      setMediaUrl("");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao agendar");
+    } finally {
+      setScheduling(false);
     }
   };
 
@@ -475,7 +544,8 @@ const BroadcastPage = () => {
               <Button
                 variant="outline"
                 className="flex-1 border-border text-foreground"
-                onClick={() => navigate("/schedules")}
+                disabled={selectedGroups.length === 0 || (!message && !mediaUrl)}
+                onClick={() => setScheduleDialogOpen(true)}
               >
                 <Clock className="h-4 w-4 mr-2" />
                 Agendar
@@ -496,6 +566,42 @@ const BroadcastPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Schedule Dialog */}
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Agendar Envio</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              A mensagem será enviada para {selectedGroups.length} grupo(s) na data e horário selecionados.
+            </p>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Data e Horário</Label>
+              <Input
+                type="datetime-local"
+                value={scheduleDate}
+                onChange={(e) => setScheduleDate(e.target.value)}
+                className="bg-secondary/50 border-border"
+                min={new Date().toISOString().slice(0, 16)}
+              />
+            </div>
+            <Button
+              className="w-full bg-primary text-primary-foreground"
+              onClick={handleSchedule}
+              disabled={scheduling || !scheduleDate}
+            >
+              {scheduling ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Clock className="h-4 w-4 mr-2" />
+              )}
+              {scheduling ? "Agendando..." : "Confirmar Agendamento"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
