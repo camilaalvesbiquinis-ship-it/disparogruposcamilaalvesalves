@@ -87,7 +87,7 @@ const AppRoutes = () => (
     <Route path="/plans" element={<ProtectedRoute><PlansPage /></ProtectedRoute>} />
     <Route path="/users" element={<ProtectedRoute><RoleProtectedRoute requiredRole="gerente"><UsersPage /></RoleProtectedRoute></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-    <Route path="/meus-dados" element={<ProtectedRoute><MyDataPage /></ProtectedRoute>} />
+    
     <Route path="/admin/audit-logs" element={<ProtectedRoute><RoleProtectedRoute requiredRole="gerente"><AuditLogsPage /></RoleProtectedRoute></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
