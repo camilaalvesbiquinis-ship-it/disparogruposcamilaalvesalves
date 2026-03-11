@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2, Upload, X, Sparkles } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useGroups } from "@/hooks/useGroups";
 import { useConnections } from "@/hooks/useConnections";
 import { useAddBroadcast } from "@/hooks/useBroadcasts";
@@ -29,6 +29,7 @@ const BroadcastPage = () => {
   const { data: connections = [] } = useConnections();
   const addBroadcast = useAddBroadcast();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [contentType, setContentType] = useState("text");
@@ -471,7 +472,11 @@ const BroadcastPage = () => {
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 border-border text-foreground">
+              <Button
+                variant="outline"
+                className="flex-1 border-border text-foreground"
+                onClick={() => navigate("/schedules")}
+              >
                 <Clock className="h-4 w-4 mr-2" />
                 Agendar
               </Button>
