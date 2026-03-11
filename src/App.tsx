@@ -20,7 +20,7 @@ import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
 import AuthPage from "./pages/AuthPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
-import MyDataPage from "./pages/MyDataPage";
+
 import JoinPage from "./pages/JoinPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
