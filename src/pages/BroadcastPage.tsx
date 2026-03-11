@@ -31,6 +31,7 @@ const BroadcastPage = () => {
   const { data: groups = [] } = useGroups();
   const { data: connections = [] } = useConnections();
   const addBroadcast = useAddBroadcast();
+  const addSchedule = useAddSchedule();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
