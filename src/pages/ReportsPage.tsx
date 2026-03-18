@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Download, MessageSquare, Users, TrendingUp, TrendingDown } from "lucide-react";
+import { BarChart3, Download, MessageSquare, Users, TrendingUp, Loader2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -13,32 +13,10 @@ import {
   LineChart,
   Line,
 } from "recharts";
-
-const monthlyData = [
-  { month: "Set", enviadas: 1800 },
-  { month: "Out", enviadas: 2400 },
-  { month: "Nov", enviadas: 3100 },
-  { month: "Dez", enviadas: 2900 },
-  { month: "Jan", enviadas: 3200 },
-  { month: "Fev", enviadas: 3650 },
-];
-
-const memberGrowth = [
-  { month: "Set", membros: 8200 },
-  { month: "Out", membros: 9100 },
-  { month: "Nov", membros: 10300 },
-  { month: "Dez", membros: 10800 },
-  { month: "Jan", membros: 11600 },
-  { month: "Fev", membros: 12480 },
-];
-
-const topGroups = [
-  { name: "Promoções Varejo SP", msgs: 890, members: 342 },
-  { name: "Lançamentos 2025", msgs: 650, members: 215 },
-  { name: "VIP Clientes Premium", msgs: 520, members: 128 },
-  { name: "Varejo RJ", msgs: 480, members: 198 },
-  { name: "Revendedores Gold", msgs: 410, members: 156 },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const tooltipStyle = {
   backgroundColor: "#FFFFFF",
@@ -51,35 +29,160 @@ const tooltipStyle = {
   boxShadow: "0 4px 16px rgba(44,36,32,0.1)",
 };
 
+function useReportsData() {
+  return useQuery({
+    queryKey: ["reports-data"],
+    queryFn: async () => {
+      // Fetch all broadcasts
+      const { data: broadcasts = [] } = await supabase
+        .from("broadcasts")
+        .select("id, status, sent_count, delivered_count, total_groups, created_at, title")
+        .order("created_at", { ascending: false });
+
+      // Fetch all groups
+      const { data: groups = [] } = await supabase
+        .from("groups")
+        .select("id, name, member_count, created_at, is_active");
+
+      // Fetch broadcast_groups for per-group stats
+      const { data: broadcastGroups = [] } = await supabase
+        .from("broadcast_groups")
+        .select("group_id, status");
+
+      // Monthly send data (last 6 months)
+      const now = new Date();
+      const monthlyData = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = subMonths(now, i);
+        const start = startOfMonth(monthDate);
+        const end = endOfMonth(monthDate);
+        const monthBroadcasts = broadcasts.filter((b) => {
+          const d = new Date(b.created_at);
+          return d >= start && d <= end;
+        });
+        const totalSent = monthBroadcasts.reduce((sum, b) => sum + (b.sent_count || 0), 0);
+        monthlyData.push({
+          month: format(monthDate, "MMM", { locale: ptBR }).replace(/^./, (c) => c.toUpperCase()),
+          enviadas: totalSent,
+        });
+      }
+
+      // Member growth (cumulative groups created by month)
+      const memberGrowth = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = subMonths(now, i);
+        const end = endOfMonth(monthDate);
+        const groupsUntil = groups.filter((g) => new Date(g.created_at) <= end);
+        const totalMembers = groupsUntil.reduce((sum, g) => sum + (g.member_count || 0), 0);
+        memberGrowth.push({
+          month: format(monthDate, "MMM", { locale: ptBR }).replace(/^./, (c) => c.toUpperCase()),
+          membros: totalMembers,
+        });
+      }
+
+      // Top groups by broadcast count
+      const groupSendCount: Record<string, number> = {};
+      broadcastGroups.forEach((bg) => {
+        groupSendCount[bg.group_id] = (groupSendCount[bg.group_id] || 0) + 1;
+      });
+      const topGroups = groups
+        .map((g) => ({
+          name: g.name,
+          msgs: groupSendCount[g.id] || 0,
+          members: g.member_count || 0,
+        }))
+        .sort((a, b) => b.msgs - a.msgs)
+        .slice(0, 5);
+
+      // KPIs
+      const currentMonth = broadcasts.filter((b) => {
+        const d = new Date(b.created_at);
+        return d >= startOfMonth(now) && d <= endOfMonth(now);
+      });
+      const prevMonth = broadcasts.filter((b) => {
+        const d = new Date(b.created_at);
+        const pm = subMonths(now, 1);
+        return d >= startOfMonth(pm) && d <= endOfMonth(pm);
+      });
+
+      const currentSent = currentMonth.reduce((s, b) => s + (b.sent_count || 0), 0);
+      const prevSent = prevMonth.reduce((s, b) => s + (b.sent_count || 0), 0);
+      const sentTrend = prevSent > 0 ? (((currentSent - prevSent) / prevSent) * 100).toFixed(0) : "0";
+
+      const totalMembers = groups.reduce((s, g) => s + (g.member_count || 0), 0);
+      const totalGroups = groups.length;
+
+      const totalDelivered = broadcasts.reduce((s, b) => s + (b.delivered_count || 0), 0);
+      const totalSentAll = broadcasts.reduce((s, b) => s + (b.sent_count || 0), 0);
+      const deliveryRate = totalSentAll > 0 ? ((totalDelivered / totalSentAll) * 100).toFixed(1) : "—";
+
+      return {
+        monthlyData,
+        memberGrowth,
+        topGroups,
+        currentSent,
+        sentTrend,
+        totalMembers,
+        totalGroups,
+        deliveryRate,
+        totalBroadcasts: broadcasts.length,
+      };
+    },
+  });
+}
+
 const ReportsPage = () => {
+  const { data, isLoading } = useReportsData();
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const {
+    monthlyData = [],
+    memberGrowth = [],
+    topGroups = [],
+    currentSent = 0,
+    sentTrend = "0",
+    totalMembers = 0,
+    totalGroups = 0,
+    deliveryRate = "—",
+    totalBroadcasts = 0,
+  } = data || {};
+
+  const maxMsgs = Math.max(...topGroups.map((g) => g.msgs), 1);
+
   return (
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-[28px] font-display font-semibold" style={{ color: '#1C1917' }}>Relatórios</h1>
-            <p className="text-[13px] font-sans font-light" style={{ color: '#6B6560' }}>Análise de performance e métricas</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="font-sans text-[12px] font-medium tracking-[0.05em] uppercase" style={{ background: 'transparent', border: '1px solid #2C2420', color: '#2C2420' }}>
-              <Download className="h-3.5 w-3.5 mr-1.5" /> CSV
-            </Button>
-            <Button variant="outline" size="sm" className="font-sans text-[12px] font-medium tracking-[0.05em] uppercase" style={{ background: 'transparent', border: '1px solid #2C2420', color: '#2C2420' }}>
-              <Download className="h-3.5 w-3.5 mr-1.5" /> PDF
-            </Button>
+            <p className="text-[13px] font-sans font-light" style={{ color: '#6B6560' }}>Análise de performance e métricas reais</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="Mensagens (Mês)" value="3.650" icon={<MessageSquare className="h-5 w-5" />} trend={{ value: "+14%", positive: true }} />
-          <KpiCard title="Membros Totais" value="12.480" icon={<Users className="h-5 w-5" />} trend={{ value: "+7.6%", positive: true }} />
-          <KpiCard title="Taxa Entrega" value="94.2%" icon={<TrendingUp className="h-5 w-5" />} />
-          <KpiCard title="Taxa Saída" value="2.1%" icon={<TrendingDown className="h-5 w-5" />} trend={{ value: "-0.3%", positive: true }} />
+          <KpiCard
+            title="Envios (Mês)"
+            value={currentSent.toLocaleString("pt-BR")}
+            icon={<MessageSquare className="h-5 w-5" />}
+            trend={Number(sentTrend) !== 0 ? { value: `${Number(sentTrend) > 0 ? "+" : ""}${sentTrend}%`, positive: Number(sentTrend) >= 0 } : undefined}
+          />
+          <KpiCard title="Membros Totais" value={totalMembers.toLocaleString("pt-BR")} icon={<Users className="h-5 w-5" />} />
+          <KpiCard title="Taxa Entrega" value={deliveryRate === "—" ? "—" : `${deliveryRate}%`} icon={<TrendingUp className="h-5 w-5" />} />
+          <KpiCard title="Total Disparos" value={totalBroadcasts} icon={<BarChart3 className="h-5 w-5" />} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="card-glow p-6">
-            <h3 className="section-title">Mensagens por Mês</h3>
+            <h3 className="section-title">Envios por Mês</h3>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE5" />
@@ -92,7 +195,7 @@ const ReportsPage = () => {
           </div>
 
           <div className="card-glow p-6">
-            <h3 className="section-title">Crescimento de Membros</h3>
+            <h3 className="section-title">Membros Totais por Mês</h3>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={memberGrowth}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE5" />
@@ -110,23 +213,27 @@ const ReportsPage = () => {
             <BarChart3 className="h-4 w-4" style={{ color: '#8B6E5A' }} />
             Grupos Mais Ativos
           </h3>
-          <div className="space-y-3">
-            {topGroups.map((g, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <span className="text-[11px] font-data w-6" style={{ color: '#C4B8B0' }}>#{i + 1}</span>
-                <div className="flex-1">
-                  <p className="text-[13px] font-sans font-medium" style={{ color: '#1C1917' }}>{g.name}</p>
-                  <div className="mt-1 progress-bar-track">
-                    <div className="progress-bar-fill" style={{ width: `${(g.msgs / 890) * 100}%` }} />
+          {topGroups.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">Nenhum dado de envio ainda</p>
+          ) : (
+            <div className="space-y-3">
+              {topGroups.map((g, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <span className="text-[11px] font-data w-6" style={{ color: '#C4B8B0' }}>#{i + 1}</span>
+                  <div className="flex-1">
+                    <p className="text-[13px] font-sans font-medium" style={{ color: '#1C1917' }}>{g.name}</p>
+                    <div className="mt-1 progress-bar-track">
+                      <div className="progress-bar-fill" style={{ width: `${(g.msgs / maxMsgs) * 100}%` }} />
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[13px] font-data font-medium" style={{ color: '#1C1917' }}>{g.msgs} <span className="text-[11px]" style={{ color: '#A09890' }}>envios</span></p>
+                    <p className="text-[11px] font-data" style={{ color: '#A09890' }}>{g.members} membros</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-[13px] font-data font-medium" style={{ color: '#1C1917' }}>{g.msgs} <span className="text-[11px]" style={{ color: '#A09890' }}>msgs</span></p>
-                  <p className="text-[11px] font-data" style={{ color: '#A09890' }}>{g.members} membros</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>
