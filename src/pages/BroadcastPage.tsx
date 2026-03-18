@@ -156,6 +156,15 @@ const BroadcastPage = () => {
       return;
     }
 
+    // Poll validation
+    if (contentType === "poll") {
+      const validOptions = pollOptions.filter((o) => o.trim());
+      if (validOptions.length < 2) {
+        toast.error("Enquete precisa de pelo menos 2 opções preenchidas");
+        return;
+      }
+    }
+
     // Validate and sanitize message
     if (message.length > 4096) {
       toast.error("Mensagem deve ter no máximo 4096 caracteres");
