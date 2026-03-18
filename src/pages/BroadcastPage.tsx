@@ -230,15 +230,21 @@ const BroadcastPage = () => {
             }
           }
 
-          const { error } = await supabase.functions.invoke("zapi-send", {
-            body: {
+          const invokeBody: Record<string, unknown> = {
               phone: whatsappId,
               message: sanitizedMessage,
               contentType: effectiveContentType,
               mediaUrl: mediaUrl || undefined,
               mentionAll,
-            },
-          });
+            };
+            if (effectiveContentType === "poll") {
+              invokeBody.pollOptions = pollOptions.filter((o) => o.trim());
+              if (pollMaxOptions >= 1) invokeBody.pollMaxOptions = pollMaxOptions;
+            }
+
+            const { error } = await supabase.functions.invoke("zapi-send", {
+              body: invokeBody,
+            });
 
           if (error) throw error;
           sentCount++;
