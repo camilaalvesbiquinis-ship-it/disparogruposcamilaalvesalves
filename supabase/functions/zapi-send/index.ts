@@ -105,11 +105,27 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (!message && !mediaUrl) {
+    if (!message && !mediaUrl && !(contentType === "poll")) {
       return new Response(JSON.stringify({ error: "message or mediaUrl is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Validate poll options
+    if (contentType === "poll") {
+      if (!message) {
+        return new Response(JSON.stringify({ error: "Poll question (message) is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!Array.isArray(pollOptions) || pollOptions.length < 2 || pollOptions.length > 12) {
+        return new Response(JSON.stringify({ error: "Poll requires 2-12 options" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Validate contentType
