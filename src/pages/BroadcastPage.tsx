@@ -561,6 +561,8 @@ const BroadcastPage = () => {
               message={message}
               previewUrl={previewUrl}
               mentionAll={mentionAll}
+              contentType={contentType}
+              pollOptions={pollOptions}
             />
 
             <div className="card-glow rounded-xl p-5 space-y-4">
