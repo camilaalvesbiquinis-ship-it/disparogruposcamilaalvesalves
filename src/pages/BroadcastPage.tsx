@@ -50,6 +50,8 @@ const BroadcastPage = () => {
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduling, setScheduling] = useState(false);
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
+  const [pollMaxOptions, setPollMaxOptions] = useState<number>(0); // 0 = multiple choice
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load cloned broadcast data from query params
