@@ -1,21 +1,24 @@
-import { Check, Eye } from "lucide-react";
+import { Check, Eye, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 
 interface MessagePreviewProps {
   message: string;
   previewUrl?: string;
   mentionAll?: boolean;
+  contentType?: string;
+  pollOptions?: string[];
 }
 
-const MessagePreview = ({ message, previewUrl, mentionAll }: MessagePreviewProps) => {
+const MessagePreview = ({ message, previewUrl, mentionAll, contentType, pollOptions = [] }: MessagePreviewProps) => {
   const now = format(new Date(), "HH:mm");
   const hasContent = message || previewUrl;
 
-  // Replace variables with example values for preview
   const previewMessage = message
     .replace(/\{nome_grupo\}/g, "Grupo Exemplo")
     .replace(/\{categoria\}/g, "varejo")
     .replace(/\{data\}/g, format(new Date(), "dd/MM/yyyy"));
+
+  const validPollOptions = pollOptions.filter((o) => o.trim());
 
   return (
     <div className="card-glow rounded-xl p-5 space-y-3">
@@ -24,7 +27,6 @@ const MessagePreview = ({ message, previewUrl, mentionAll }: MessagePreviewProps
         Preview da Mensagem
       </h3>
 
-      {/* WhatsApp-style chat background */}
       <div
         className="rounded-lg p-4 min-h-[200px] flex items-end justify-end"
         style={{
@@ -35,25 +37,35 @@ const MessagePreview = ({ message, previewUrl, mentionAll }: MessagePreviewProps
       >
         {hasContent ? (
           <div className="max-w-[85%] rounded-lg overflow-hidden shadow-md bg-primary/15 border border-primary/10">
-            {/* Image */}
             {previewUrl && (
-              <img
-                src={previewUrl}
-                alt="Anexo"
-                className="w-full max-h-48 object-cover"
-              />
+              <img src={previewUrl} alt="Anexo" className="w-full max-h-48 object-cover" />
             )}
 
-            {/* Message body */}
             <div className="px-3 py-2 space-y-1">
               {mentionAll && (
                 <p className="text-[11px] font-semibold text-primary">@todos</p>
               )}
               {previewMessage && (
                 <p className="text-sm text-foreground whitespace-pre-wrap break-words">
+                  {contentType === "poll" && <BarChart3 className="inline h-3.5 w-3.5 mr-1 text-primary" />}
                   {previewMessage}
                 </p>
               )}
+
+              {contentType === "poll" && validPollOptions.length > 0 && (
+                <div className="space-y-1.5 mt-2 pt-2 border-t border-primary/10">
+                  {validPollOptions.map((opt, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-background/50 border border-border text-xs text-foreground"
+                    >
+                      <div className="h-3 w-3 rounded-full border border-muted-foreground/40 shrink-0" />
+                      {opt}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-1">
                 <span className="text-[10px] text-muted-foreground">{now}</span>
                 <div className="flex">
