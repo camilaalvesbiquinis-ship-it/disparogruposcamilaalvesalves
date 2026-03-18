@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { phone, message, contentType, mediaUrl, mentionAll } = body;
+    const { phone, message, contentType, mediaUrl, mentionAll, pollOptions, pollMaxOptions } = body;
 
     // Input validation
     if (!phone || typeof phone !== "string") {
