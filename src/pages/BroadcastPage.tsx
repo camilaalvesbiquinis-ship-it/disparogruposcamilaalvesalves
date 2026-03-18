@@ -25,6 +25,7 @@ const contentTypes = [
   { id: "image", label: "Imagem", icon: ImageIcon },
   { id: "video", label: "Vídeo", icon: Video },
   { id: "link", label: "Link", icon: Link2 },
+  { id: "poll", label: "Enquete", icon: BarChart3 },
 ];
 
 const BroadcastPage = () => {
