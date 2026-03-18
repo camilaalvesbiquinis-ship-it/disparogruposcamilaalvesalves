@@ -478,6 +478,7 @@ export type Database = {
         | "pdf"
         | "catalog"
         | "link"
+        | "poll"
       broadcast_status: "draft" | "sending" | "sent" | "failed" | "scheduled"
       connection_status: "connected" | "disconnected" | "blocked"
       group_category:
@@ -624,6 +625,7 @@ export const Constants = {
         "pdf",
         "catalog",
         "link",
+        "poll",
       ],
       broadcast_status: ["draft", "sending", "sent", "failed", "scheduled"],
       connection_status: ["connected", "disconnected", "blocked"],
