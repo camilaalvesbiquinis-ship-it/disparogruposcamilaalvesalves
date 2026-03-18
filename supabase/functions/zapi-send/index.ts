@@ -129,14 +129,24 @@ Deno.serve(async (req) => {
     }
 
     // Validate contentType
-    const validTypes = ["text", "image", "video", "pdf", "catalog", "link"];
+    const validTypes = ["text", "image", "video", "pdf", "catalog", "link", "poll"];
     const safeContentType = validTypes.includes(contentType) ? contentType : "text";
     const effectiveContentType = mediaUrl && safeContentType === "text" ? "image" : safeContentType;
 
     let endpoint = "send-text";
     let payload: Record<string, unknown> = { phone: targetPhone, message: message || "" };
 
-    if (effectiveContentType === "image" && mediaUrl) {
+    if (effectiveContentType === "poll") {
+      endpoint = "send-poll";
+      payload = {
+        phone: targetPhone,
+        message: message || "",
+        poll: pollOptions.map((opt: string) => ({ name: opt })),
+      };
+      if (pollMaxOptions && typeof pollMaxOptions === "number" && pollMaxOptions >= 1) {
+        payload.pollMaxOptions = pollMaxOptions;
+      }
+    } else if (effectiveContentType === "image" && mediaUrl) {
       endpoint = "send-image";
       payload = { phone: targetPhone, image: mediaUrl, caption: message || "" };
     } else if (effectiveContentType === "video" && mediaUrl) {
