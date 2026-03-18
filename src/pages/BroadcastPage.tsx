@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2, Upload, X, Sparkles } from "lucide-react";
+import { Send, ImageIcon, FileText, Video, Link2, AtSign, Clock, Zap, Loader2, Upload, X, Sparkles, BarChart3, Plus, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAddSchedule } from "@/hooks/useSchedules";
@@ -25,6 +25,7 @@ const contentTypes = [
   { id: "image", label: "Imagem", icon: ImageIcon },
   { id: "video", label: "Vídeo", icon: Video },
   { id: "link", label: "Link", icon: Link2 },
+  { id: "poll", label: "Enquete", icon: BarChart3 },
 ];
 
 const BroadcastPage = () => {
@@ -49,6 +50,8 @@ const BroadcastPage = () => {
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduling, setScheduling] = useState(false);
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
+  const [pollMaxOptions, setPollMaxOptions] = useState<number>(0); // 0 = multiple choice
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load cloned broadcast data from query params
@@ -153,6 +156,15 @@ const BroadcastPage = () => {
       return;
     }
 
+    // Poll validation
+    if (contentType === "poll") {
+      const validOptions = pollOptions.filter((o) => o.trim());
+      if (validOptions.length < 2) {
+        toast.error("Enquete precisa de pelo menos 2 opções preenchidas");
+        return;
+      }
+    }
+
     // Validate and sanitize message
     if (message.length > 4096) {
       toast.error("Mensagem deve ter no máximo 4096 caracteres");
@@ -218,15 +230,21 @@ const BroadcastPage = () => {
             }
           }
 
-          const { error } = await supabase.functions.invoke("zapi-send", {
-            body: {
+          const invokeBody: Record<string, unknown> = {
               phone: whatsappId,
               message: sanitizedMessage,
               contentType: effectiveContentType,
               mediaUrl: mediaUrl || undefined,
               mentionAll,
-            },
-          });
+            };
+            if (effectiveContentType === "poll") {
+              invokeBody.pollOptions = pollOptions.filter((o) => o.trim());
+              if (pollMaxOptions >= 1) invokeBody.pollMaxOptions = pollMaxOptions;
+            }
+
+            const { error } = await supabase.functions.invoke("zapi-send", {
+              body: invokeBody,
+            });
 
           if (error) throw error;
           sentCount++;
@@ -438,13 +456,76 @@ const BroadcastPage = () => {
               )}
 
               <Textarea
-                placeholder={`Digite sua mensagem...\n\nVariáveis disponíveis: {nome_grupo}, {categoria}, {data}`}
-                className="min-h-[160px] bg-secondary/50 border-border resize-none"
+                placeholder={contentType === "poll" ? "Digite a pergunta da enquete..." : `Digite sua mensagem...\n\nVariáveis disponíveis: {nome_grupo}, {categoria}, {data}`}
+                className="min-h-[120px] bg-secondary/50 border-border resize-none"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={4096}
               />
               <p className="text-[10px] text-muted-foreground text-right">{message.length}/4096</p>
+
+              {contentType === "poll" && (
+                <div className="space-y-3 p-4 rounded-lg border border-border bg-secondary/30">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <BarChart3 className="h-3.5 w-3.5 text-primary" />
+                      Opções da Enquete
+                    </Label>
+                    <Select
+                      value={String(pollMaxOptions)}
+                      onValueChange={(v) => setPollMaxOptions(Number(v))}
+                    >
+                      <SelectTrigger className="w-[180px] h-8 text-xs bg-secondary/50 border-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Múltipla escolha</SelectItem>
+                        <SelectItem value="1">Escolha única</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    {pollOptions.map((opt, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground w-5 text-right">{i + 1}.</span>
+                        <Input
+                          placeholder={`Opção ${i + 1}`}
+                          value={opt}
+                          onChange={(e) => {
+                            const updated = [...pollOptions];
+                            updated[i] = e.target.value;
+                            setPollOptions(updated);
+                          }}
+                          className="bg-background border-border h-9 text-sm"
+                          maxLength={100}
+                        />
+                        {pollOptions.length > 2 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {pollOptions.length < 12 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-dashed border-border text-muted-foreground text-xs"
+                      onClick={() => setPollOptions([...pollOptions, ""])}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1.5" />
+                      Adicionar opção
+                    </Button>
+                  )}
+                  <p className="text-[10px] text-muted-foreground">Mínimo 2, máximo 12 opções</p>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -480,6 +561,8 @@ const BroadcastPage = () => {
               message={message}
               previewUrl={previewUrl}
               mentionAll={mentionAll}
+              contentType={contentType}
+              pollOptions={pollOptions}
             />
 
             <div className="card-glow rounded-xl p-5 space-y-4">

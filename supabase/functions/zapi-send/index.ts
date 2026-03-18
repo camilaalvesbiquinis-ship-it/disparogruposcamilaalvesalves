@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { phone, message, contentType, mediaUrl, mentionAll } = body;
+    const { phone, message, contentType, mediaUrl, mentionAll, pollOptions, pollMaxOptions } = body;
 
     // Input validation
     if (!phone || typeof phone !== "string") {
@@ -105,22 +105,48 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (!message && !mediaUrl) {
+    if (!message && !mediaUrl && !(contentType === "poll")) {
       return new Response(JSON.stringify({ error: "message or mediaUrl is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Validate poll options
+    if (contentType === "poll") {
+      if (!message) {
+        return new Response(JSON.stringify({ error: "Poll question (message) is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!Array.isArray(pollOptions) || pollOptions.length < 2 || pollOptions.length > 12) {
+        return new Response(JSON.stringify({ error: "Poll requires 2-12 options" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Validate contentType
-    const validTypes = ["text", "image", "video", "pdf", "catalog", "link"];
+    const validTypes = ["text", "image", "video", "pdf", "catalog", "link", "poll"];
     const safeContentType = validTypes.includes(contentType) ? contentType : "text";
     const effectiveContentType = mediaUrl && safeContentType === "text" ? "image" : safeContentType;
 
     let endpoint = "send-text";
     let payload: Record<string, unknown> = { phone: targetPhone, message: message || "" };
 
-    if (effectiveContentType === "image" && mediaUrl) {
+    if (effectiveContentType === "poll") {
+      endpoint = "send-poll";
+      payload = {
+        phone: targetPhone,
+        message: message || "",
+        poll: pollOptions.map((opt: string) => ({ name: opt })),
+      };
+      if (pollMaxOptions && typeof pollMaxOptions === "number" && pollMaxOptions >= 1) {
+        payload.pollMaxOptions = pollMaxOptions;
+      }
+    } else if (effectiveContentType === "image" && mediaUrl) {
       endpoint = "send-image";
       payload = { phone: targetPhone, image: mediaUrl, caption: message || "" };
     } else if (effectiveContentType === "video" && mediaUrl) {
