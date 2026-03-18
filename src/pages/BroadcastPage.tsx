@@ -441,13 +441,76 @@ const BroadcastPage = () => {
               )}
 
               <Textarea
-                placeholder={`Digite sua mensagem...\n\nVariáveis disponíveis: {nome_grupo}, {categoria}, {data}`}
-                className="min-h-[160px] bg-secondary/50 border-border resize-none"
+                placeholder={contentType === "poll" ? "Digite a pergunta da enquete..." : `Digite sua mensagem...\n\nVariáveis disponíveis: {nome_grupo}, {categoria}, {data}`}
+                className="min-h-[120px] bg-secondary/50 border-border resize-none"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={4096}
               />
               <p className="text-[10px] text-muted-foreground text-right">{message.length}/4096</p>
+
+              {contentType === "poll" && (
+                <div className="space-y-3 p-4 rounded-lg border border-border bg-secondary/30">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <BarChart3 className="h-3.5 w-3.5 text-primary" />
+                      Opções da Enquete
+                    </Label>
+                    <Select
+                      value={String(pollMaxOptions)}
+                      onValueChange={(v) => setPollMaxOptions(Number(v))}
+                    >
+                      <SelectTrigger className="w-[180px] h-8 text-xs bg-secondary/50 border-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Múltipla escolha</SelectItem>
+                        <SelectItem value="1">Escolha única</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    {pollOptions.map((opt, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground w-5 text-right">{i + 1}.</span>
+                        <Input
+                          placeholder={`Opção ${i + 1}`}
+                          value={opt}
+                          onChange={(e) => {
+                            const updated = [...pollOptions];
+                            updated[i] = e.target.value;
+                            setPollOptions(updated);
+                          }}
+                          className="bg-background border-border h-9 text-sm"
+                          maxLength={100}
+                        />
+                        {pollOptions.length > 2 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {pollOptions.length < 12 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-dashed border-border text-muted-foreground text-xs"
+                      onClick={() => setPollOptions([...pollOptions, ""])}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1.5" />
+                      Adicionar opção
+                    </Button>
+                  )}
+                  <p className="text-[10px] text-muted-foreground">Mínimo 2, máximo 12 opções</p>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
