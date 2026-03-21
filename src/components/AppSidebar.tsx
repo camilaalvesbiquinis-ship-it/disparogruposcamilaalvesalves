@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Smartphone, Users, Send, Mail, CalendarClock,
-  Shield, Settings, UserCog, Gem, CreditCard } from
+  Shield, Settings, UserCog, Gem } from
 "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -23,7 +23,7 @@ const systemNav = [
 
 { title: "Segurança", url: "/security", icon: Shield },
 
-{ title: "Planos", url: "/plans", icon: CreditCard },
+
 
 { title: "Configurações", url: "/settings", icon: Settings }];
 
