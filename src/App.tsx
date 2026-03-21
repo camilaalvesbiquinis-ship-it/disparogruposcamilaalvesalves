@@ -15,6 +15,7 @@ import MessagesPage from "./pages/MessagesPage";
 import SchedulesPage from "./pages/SchedulesPage";
 import SecurityPage from "./pages/SecurityPage";
 import ReportsPage from "./pages/ReportsPage";
+import PlansPage from "./pages/PlansPage";
 
 import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
