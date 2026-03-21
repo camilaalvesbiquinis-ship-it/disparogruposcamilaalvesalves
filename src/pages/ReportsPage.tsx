@@ -37,7 +37,8 @@ function useReportsData() {
       const { data: broadcasts = [] } = await supabase
         .from("broadcasts")
         .select("id, status, sent_count, delivered_count, total_groups, created_at, title")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(200);
 
       // Fetch all groups
       const { data: groups = [] } = await supabase
@@ -47,7 +48,8 @@ function useReportsData() {
       // Fetch broadcast_groups for per-group stats
       const { data: broadcastGroups = [] } = await supabase
         .from("broadcast_groups")
-        .select("group_id, status");
+        .select("group_id, status")
+        .limit(500);
 
       // Monthly send data (last 6 months)
       const now = new Date();

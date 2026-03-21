@@ -1,39 +1,20 @@
 import { AppLayout } from "@/components/AppLayout";
 import { KpiCard } from "@/components/KpiCard";
 import { Smartphone, Users, MessageSquare, CalendarClock, Send, Activity, Loader2 } from "lucide-react";
+import { useConnections } from "@/hooks/useConnections";
+import { useGroups } from "@/hooks/useGroups";
+import { useBroadcasts } from "@/hooks/useBroadcasts";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
-  const { data: connections = [], isLoading: loadingConn } = useQuery({
-    queryKey: ["dashboard-connections"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("whatsapp_connections").select("id, status");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: groups = [], isLoading: loadingGroups } = useQuery({
-    queryKey: ["dashboard-groups"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("groups").select("id, is_active, member_count");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: broadcasts = [], isLoading: loadingBroadcasts } = useQuery({
-    queryKey: ["dashboard-broadcasts"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("broadcasts").select("id, status, sent_count, delivered_count, title, created_at, total_groups").order("created_at", { ascending: false }).limit(5);
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: connections = [], isLoading: loadingConn } = useConnections();
+  const { data: groups = [], isLoading: loadingGroups } = useGroups();
+  const { data: allBroadcasts = [], isLoading: loadingBroadcasts } = useBroadcasts();
+  const broadcasts = allBroadcasts.slice(0, 5);
 
   const { data: schedules = [] } = useQuery({
-    queryKey: ["dashboard-schedules"],
+    queryKey: ["schedules-summary"],
     queryFn: async () => {
       const { data, error } = await supabase.from("schedules").select("id, is_active");
       if (error) throw error;
