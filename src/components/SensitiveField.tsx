@@ -41,7 +41,6 @@ export function SensitiveField({
     if (!canReveal) return;
     setRevealed(!revealed);
   };
-  };
 
   return (
     <span className={`inline-flex items-center gap-1.5 ${className}`}>
