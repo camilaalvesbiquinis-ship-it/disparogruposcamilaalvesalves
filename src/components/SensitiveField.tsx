@@ -1,28 +1,20 @@
 /**
  * Reusable component for displaying sensitive/PII data in masked form.
  * Only authorized users (gerente) can reveal the full value.
- * Reveals are logged in audit_logs.
  */
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { logAuditAction } from "@/lib/audit";
 import { maskCPF, maskEmail, maskPhone, maskGeneric } from "@/lib/masks";
 
 type FieldType = "cpf" | "email" | "phone" | "generic";
 
 interface SensitiveFieldProps {
-  /** The actual unmasked value */
   value: string;
-  /** Whether the current user is allowed to reveal the value */
   canReveal?: boolean;
-  /** Type of field for appropriate masking */
   type?: FieldType;
-  /** Optional record ID for audit logging */
   recordId?: string;
-  /** Optional table name for audit logging */
   tableName?: string;
-  /** Additional CSS classes */
   className?: string;
 }
 
@@ -37,8 +29,6 @@ export function SensitiveField({
   value,
   canReveal = false,
   type = "generic",
-  recordId,
-  tableName,
   className = "",
 }: SensitiveFieldProps) {
   const [revealed, setRevealed] = useState(false);
@@ -47,20 +37,9 @@ export function SensitiveField({
 
   const masked = maskFunctions[type](value);
 
-  const handleReveal = async () => {
+  const handleReveal = () => {
     if (!canReveal) return;
-    const next = !revealed;
-    setRevealed(next);
-
-    if (next) {
-      // Log the decrypt/reveal action
-      await logAuditAction({
-        action: "decrypt",
-        tableName: tableName ?? "unknown",
-        recordId: recordId ?? "unknown",
-        details: { field_type: type },
-      });
-    }
+    setRevealed(!revealed);
   };
 
   return (
