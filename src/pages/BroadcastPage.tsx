@@ -297,7 +297,7 @@ const BroadcastPage = () => {
         status: "scheduled",
       });
 
-      await addSchedule.mutateAsync({
+      const schedule = await addSchedule.mutateAsync({
         title: sanitizedMessage.slice(0, 50) || "Disparo Agendado",
         content: sanitizedMessage,
         content_type: effectiveContentType as any,
@@ -312,6 +312,13 @@ const BroadcastPage = () => {
         group_id: groupId,
       }));
       await supabase.from("broadcast_groups").insert(groupInserts);
+
+      // Link groups to the schedule so process-schedules can find them
+      const scheduleGroupInserts = selectedGroups.map((groupId) => ({
+        schedule_id: schedule.id,
+        group_id: groupId,
+      }));
+      await supabase.from("schedule_groups").insert(scheduleGroupInserts);
 
 
       toast.success("Mensagem agendada com sucesso!");
