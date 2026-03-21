@@ -313,12 +313,6 @@ const BroadcastPage = () => {
       }));
       await supabase.from("broadcast_groups").insert(groupInserts);
 
-      await logAuditAction({
-        action: "schedule",
-        tableName: "broadcasts",
-        recordId: broadcast.id,
-        details: { groups: selectedGroups.length, scheduledAt },
-      });
 
       toast.success("Mensagem agendada com sucesso!");
       setScheduleDialogOpen(false);
