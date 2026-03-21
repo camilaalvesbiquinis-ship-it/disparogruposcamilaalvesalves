@@ -7,7 +7,6 @@ import { Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,19 +15,9 @@ const AuthPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Login realizado com sucesso!");
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast.success("Conta criada com sucesso!");
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success("Login realizado com sucesso!");
     } catch (error: any) {
       toast.error(error.message || "Erro na autenticação");
     } finally {
@@ -45,7 +34,7 @@ const AuthPage = () => {
             GroupFlow
           </h1>
           <p className="text-[13px] font-sans text-muted-foreground">
-            {isLogin ? "Entre na sua conta" : "Crie sua conta"}
+            Entre na sua conta
           </p>
         </div>
 
@@ -88,19 +77,13 @@ const AuthPage = () => {
                 Aguarde...
               </span>
             ) : (
-              <span>{isLogin ? "Entrar" : "Criar Conta"}</span>
+              <span>Entrar</span>
             )}
           </Button>
         </form>
 
-        <p className="text-center text-[13px] font-sans text-muted-foreground">
-          {isLogin ? "Não tem conta?" : "Já tem conta?"}{" "}
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="underline underline-offset-4 text-foreground transition-colors duration-200"
-          >
-            {isLogin ? "Criar conta" : "Fazer login"}
-          </button>
+        <p className="text-center text-[12px] font-sans text-muted-foreground">
+          Acesso somente por convite
         </p>
       </div>
     </div>

@@ -4,11 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUserRole, AppRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Shield, Eye, PenTool } from "lucide-react";
+import { Users, Shield, Eye, PenTool, UserPlus, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const roleConfig: Record<AppRole, { label: string; icon: typeof Shield; bg: string; color: string; border: string }> = {
   gerente: { label: "Gerente", icon: Shield, bg: "#FDECEA", color: "#922B21", border: "#F5C0BB" },
@@ -28,6 +33,10 @@ const UsersPage = () => {
   const { canManage } = useUserRole();
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<AppRole>("leitor");
+  const [inviteResult, setInviteResult] = useState<{ email: string; tempPassword: string } | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["users-with-roles"],
@@ -57,6 +66,40 @@ const UsersPage = () => {
     onError: (err: any) => toast.error(err.message || "Erro ao atualizar papel"),
   });
 
+  const inviteUser = useMutation({
+    mutationFn: async ({ email, role }: { email: string; role: string }) => {
+      const { data, error } = await supabase.functions.invoke("invite-user", {
+        body: { email, role },
+      });
+      if (error) throw new Error(error.message || "Erro ao convidar");
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      setInviteResult({ email: data.email, tempPassword: data.tempPassword });
+      queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
+      toast.success("Usuário convidado com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message || "Erro ao convidar usuário"),
+  });
+
+  const handleInvite = (e: React.FormEvent) => {
+    e.preventDefault();
+    inviteUser.mutate({ email: inviteEmail, role: inviteRole });
+  };
+
+  const handleCloseInvite = () => {
+    setInviteOpen(false);
+    setInviteEmail("");
+    setInviteRole("leitor");
+    setInviteResult(null);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copiado!");
+  };
+
   const roleCounts = {
     gerente: users?.filter((u) => u.role === "gerente").length ?? 0,
     criador: users?.filter((u) => u.role === "criador").length ?? 0,
@@ -66,9 +109,20 @@ const UsersPage = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-[28px] font-display font-semibold" style={{ color: '#1C1917' }}>Usuários</h1>
-          <p className="text-[13px] font-sans font-light" style={{ color: '#6B6560' }}>Monitoramento e gerenciamento de papéis</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-[28px] font-display font-semibold" style={{ color: '#1C1917' }}>Usuários</h1>
+            <p className="text-[13px] font-sans font-light" style={{ color: '#6B6560' }}>Monitoramento e gerenciamento de papéis</p>
+          </div>
+          {canManage && (
+            <Button
+              onClick={() => setInviteOpen(true)}
+              className="text-[13px] font-sans font-semibold uppercase tracking-[0.07em] rounded-sm gap-2"
+            >
+              <UserPlus className="h-4 w-4" />
+              Convidar
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -162,6 +216,84 @@ const UsersPage = () => {
           </Table>
         </div>
       </div>
+
+      {/* Invite Dialog */}
+      <Dialog open={inviteOpen} onOpenChange={handleCloseInvite}>
+        <DialogContent className="sm:max-w-md bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-primary" />
+              Convidar Usuário
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              O usuário receberá uma senha temporária para acessar o sistema.
+            </DialogDescription>
+          </DialogHeader>
+
+          {inviteResult ? (
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg bg-success/10 border border-success/20 p-4 space-y-3">
+                <p className="text-sm font-semibold text-foreground">✅ Usuário criado com sucesso!</p>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-[11px] font-sans font-semibold uppercase tracking-[0.07em] text-muted-foreground">Email</p>
+                    <p className="text-sm text-foreground">{inviteResult.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-sans font-semibold uppercase tracking-[0.07em] text-muted-foreground">Senha Temporária</p>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm bg-secondary px-2 py-1 rounded font-mono text-foreground">{inviteResult.tempPassword}</code>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyToClipboard(inviteResult.tempPassword)}>
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">⚠️ Compartilhe a senha de forma segura. O usuário deve alterá-la no primeiro acesso.</p>
+              </div>
+              <Button className="w-full" onClick={handleCloseInvite}>Fechar</Button>
+            </div>
+          ) : (
+            <form onSubmit={handleInvite} className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-sans font-semibold uppercase tracking-[0.07em] text-muted-foreground">
+                  Email
+                </Label>
+                <Input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="usuario@email.com"
+                  required
+                  className="bg-transparent border-input text-foreground"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-sans font-semibold uppercase tracking-[0.07em] text-muted-foreground">
+                  Papel
+                </Label>
+                <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as AppRole)}>
+                  <SelectTrigger className="bg-transparent border-input text-foreground">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="leitor">Leitor</SelectItem>
+                    <SelectItem value="criador">Criador</SelectItem>
+                    <SelectItem value="gerente">Gerente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" className="w-full" disabled={inviteUser.isPending}>
+                {inviteUser.isPending ? (
+                  <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Convidando...</span>
+                ) : (
+                  "Convidar"
+                )}
+              </Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
