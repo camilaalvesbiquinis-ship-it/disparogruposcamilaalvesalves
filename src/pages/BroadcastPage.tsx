@@ -16,7 +16,7 @@ import { useConnections } from "@/hooks/useConnections";
 import { useAddBroadcast } from "@/hooks/useBroadcasts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { logAuditAction } from "@/lib/audit";
+
 import { sanitizeText, containsSQLInjection } from "@/lib/validation";
 import MessagePreview from "@/components/MessagePreview";
 
@@ -192,13 +192,6 @@ const BroadcastPage = () => {
         status: "sending",
       });
 
-      // Audit log for broadcast creation
-      await logAuditAction({
-        action: "edit",
-        tableName: "broadcasts",
-        recordId: broadcast.id,
-        details: { groups: selectedGroups.length, contentType: effectiveContentType },
-      });
 
       // Send to each group with delay
       let sentCount = 0;

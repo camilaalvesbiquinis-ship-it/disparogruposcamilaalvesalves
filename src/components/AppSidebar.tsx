@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Smartphone, Users, Send, Mail, CalendarClock,
-  Shield, BarChart3, Settings, UserCog, ScrollText, Gem, CreditCard } from
+  Shield, BarChart3, Settings, UserCog, Gem, CreditCard } from
 "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -20,7 +20,7 @@ const mainNav = [
 
 const systemNav = [
 { title: "Usuários", url: "/users", icon: UserCog },
-{ title: "Auditoria", url: "/admin/audit-logs", icon: ScrollText },
+
 { title: "Segurança", url: "/security", icon: Shield },
 { title: "Relatórios", url: "/reports", icon: BarChart3 },
 { title: "Planos", url: "/plans", icon: CreditCard },

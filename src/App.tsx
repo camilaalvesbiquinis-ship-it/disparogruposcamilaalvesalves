@@ -20,7 +20,7 @@ import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
 import AuthPage from "./pages/AuthPage";
-import AuditLogsPage from "./pages/AuditLogsPage";
+
 
 import JoinPage from "./pages/JoinPage";
 import NotFound from "./pages/NotFound";
@@ -98,7 +98,7 @@ const AppRoutes = () => (
     <Route path="/users" element={<ProtectedRoute><RoleProtectedRoute requiredRole="gerente"><UsersPage /></RoleProtectedRoute></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
     
-    <Route path="/admin/audit-logs" element={<ProtectedRoute><RoleProtectedRoute requiredRole="gerente"><AuditLogsPage /></RoleProtectedRoute></ProtectedRoute>} />
+    
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
