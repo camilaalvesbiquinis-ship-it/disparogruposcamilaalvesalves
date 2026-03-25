@@ -305,21 +305,25 @@ const BroadcastPage = () => {
         frequency: "once",
         scheduled_at: scheduledAt,
         next_run_at: scheduledAt,
-      });
+        broadcast_id: broadcast.id,
+      } as any);
 
       const groupInserts = selectedGroups.map((groupId) => ({
         broadcast_id: broadcast.id,
         group_id: groupId,
       }));
-      await supabase.from("broadcast_groups").insert(groupInserts);
-
-      // Link groups to the schedule so process-schedules can find them
       const scheduleGroupInserts = selectedGroups.map((groupId) => ({
         schedule_id: schedule.id,
         group_id: groupId,
       }));
-      await supabase.from("schedule_groups").insert(scheduleGroupInserts);
 
+      const [{ error: broadcastGroupsError }, { error: scheduleGroupsError }] = await Promise.all([
+        supabase.from("broadcast_groups").insert(groupInserts),
+        supabase.from("schedule_groups").insert(scheduleGroupInserts),
+      ]);
+
+      if (broadcastGroupsError) throw broadcastGroupsError;
+      if (scheduleGroupsError) throw scheduleGroupsError;
 
       toast.success("Mensagem agendada com sucesso!");
       setScheduleDialogOpen(false);
