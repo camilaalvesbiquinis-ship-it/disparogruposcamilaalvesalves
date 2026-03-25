@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 const ZAPI_BASE = "https://api.z-api.io";
+const MEDIA_BUCKET = "broadcast-media";
 
 type DueSchedule = {
   id: string;
@@ -90,10 +91,12 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        const mediaUrl = await resolveScheduledMediaUrl(supabase, broadcast.media_url);
         let sentCount = 0;
         const delayMs = Math.max(0, (broadcast.delay_seconds ?? 2) * 1000);
 
-        for (const group of groups) {
+        for (let index = 0; index < groups.length; index++) {
+          const group = groups[index];
           const phone = extractGroupTarget(group);
           if (!phone) {
             await insertBroadcastLog(supabase, broadcast.id, group, "failed", "Grupo sem identificador válido para envio");
@@ -105,7 +108,7 @@ Deno.serve(async (req) => {
               phone,
               message: broadcast.content ?? schedule.content ?? "",
               contentType: broadcast.content_type ?? schedule.content_type ?? "text",
-              mediaUrl: broadcast.media_url,
+              mediaUrl,
               mentionAll: broadcast.mention_mode === "all",
             });
 
@@ -144,7 +147,7 @@ Deno.serve(async (req) => {
 
             sentCount++;
 
-            if (delayMs > 0 && sentCount < groups.length) {
+            if (delayMs > 0 && index < groups.length - 1) {
               await new Promise((resolve) => setTimeout(resolve, delayMs));
             }
           } catch (sendErr) {
@@ -259,9 +262,11 @@ async function getScheduleGroups(
     groupIds = (broadcastGroups ?? []).map((item: { group_id: string }) => item.group_id);
 
     if (groupIds.length) {
-      await supabase.from("schedule_groups").insert(
+      const { error: insertError } = await supabase.from("schedule_groups").insert(
         groupIds.map((groupId) => ({ schedule_id: schedule.id, group_id: groupId }))
       );
+
+      if (insertError) throw insertError;
     }
   }
 
@@ -274,6 +279,47 @@ async function getScheduleGroups(
 
   if (groupsError) throw groupsError;
   return (groups ?? []) as GroupDetails[];
+}
+
+async function resolveScheduledMediaUrl(
+  supabase: ReturnType<typeof createClient>,
+  mediaUrl: string | null
+): Promise<string | null> {
+  if (!mediaUrl) return null;
+
+  const storagePath = extractStoragePath(mediaUrl);
+  if (!storagePath) return mediaUrl;
+
+  const { data, error } = await supabase.storage
+    .from(MEDIA_BUCKET)
+    .createSignedUrl(storagePath, 60 * 60);
+
+  if (error) {
+    console.error("Failed to refresh signed media URL:", error);
+    return mediaUrl;
+  }
+
+  return data.signedUrl;
+}
+
+function extractStoragePath(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const signedPrefix = `/storage/v1/object/sign/${MEDIA_BUCKET}/`;
+    const publicPrefix = `/storage/v1/object/public/${MEDIA_BUCKET}/`;
+
+    if (parsed.pathname.startsWith(signedPrefix)) {
+      return decodeURIComponent(parsed.pathname.slice(signedPrefix.length));
+    }
+
+    if (parsed.pathname.startsWith(publicPrefix)) {
+      return decodeURIComponent(parsed.pathname.slice(publicPrefix.length));
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 async function markScheduleWithoutGroups(
