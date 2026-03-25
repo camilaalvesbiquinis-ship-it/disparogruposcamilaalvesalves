@@ -308,6 +308,7 @@ export type Database = {
       }
       schedules: {
         Row: {
+          broadcast_id: string | null
           connection_id: string | null
           content: string | null
           content_type: Database["public"]["Enums"]["broadcast_content_type"]
@@ -324,6 +325,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          broadcast_id?: string | null
           connection_id?: string | null
           content?: string | null
           content_type?: Database["public"]["Enums"]["broadcast_content_type"]
@@ -340,6 +342,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          broadcast_id?: string | null
           connection_id?: string | null
           content?: string | null
           content_type?: Database["public"]["Enums"]["broadcast_content_type"]
@@ -356,6 +359,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "schedules_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "broadcasts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "schedules_connection_id_fkey"
             columns: ["connection_id"]
