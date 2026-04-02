@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Smartphone, Users, Send, Mail, CalendarClock,
-  Shield, Settings, UserCog, Gem } from
+  Shield, Settings, UserCog, Gem, BarChart3 } from
 "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
