@@ -13,6 +13,7 @@ import GroupsPage from "./pages/GroupsPage";
 import BroadcastPage from "./pages/BroadcastPage";
 import MessagesPage from "./pages/MessagesPage";
 import SchedulesPage from "./pages/SchedulesPage";
+import PollResultsPage from "./pages/PollResultsPage";
 import SecurityPage from "./pages/SecurityPage";
 
 
