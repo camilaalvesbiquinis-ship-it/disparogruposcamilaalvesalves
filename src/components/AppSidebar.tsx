@@ -15,7 +15,8 @@ const mainNav = [
 { title: "Grupos", url: "/groups", icon: Users },
 { title: "Disparos", url: "/broadcast", icon: Send },
 { title: "Mensagens", url: "/messages", icon: Mail },
-{ title: "Agendamentos", url: "/schedules", icon: CalendarClock }];
+{ title: "Agendamentos", url: "/schedules", icon: CalendarClock },
+{ title: "Enquetes", url: "/poll-results", icon: BarChart3 }];
 
 
 const systemNav = [
