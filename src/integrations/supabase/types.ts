@@ -98,6 +98,38 @@ export type Database = {
           },
         ]
       }
+      broadcast_poll_messages: {
+        Row: {
+          broadcast_id: string
+          created_at: string
+          group_phone: string
+          id: string
+          zapi_message_id: string
+        }
+        Insert: {
+          broadcast_id: string
+          created_at?: string
+          group_phone: string
+          id?: string
+          zapi_message_id: string
+        }
+        Update: {
+          broadcast_id?: string
+          created_at?: string
+          group_phone?: string
+          id?: string
+          zapi_message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcast_poll_messages_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       broadcasts: {
         Row: {
           archived: boolean
@@ -239,6 +271,44 @@ export type Database = {
             columns: ["connection_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          broadcast_id: string | null
+          created_at: string
+          group_phone: string
+          id: string
+          option_name: string
+          poll_message_id: string
+          voter_phone: string
+        }
+        Insert: {
+          broadcast_id?: string | null
+          created_at?: string
+          group_phone: string
+          id?: string
+          option_name: string
+          poll_message_id: string
+          voter_phone: string
+        }
+        Update: {
+          broadcast_id?: string | null
+          created_at?: string
+          group_phone?: string
+          id?: string
+          option_name?: string
+          poll_message_id?: string
+          voter_phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "broadcasts"
             referencedColumns: ["id"]
           },
         ]
