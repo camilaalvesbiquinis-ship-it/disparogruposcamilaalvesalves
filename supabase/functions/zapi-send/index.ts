@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { phone, message, contentType, mediaUrl, mentionAll, pollOptions, pollMaxOptions } = body;
+    const { phone, message, contentType, mediaUrl, mentionAll, pollOptions, pollMaxOptions, broadcastId } = body;
 
     // Input validation
     if (!phone || typeof phone !== "string") {
@@ -179,6 +179,19 @@ Deno.serve(async (req) => {
     const data = await res.json();
     if (!res.ok) {
       throw new Error(`Z-API send failed [${res.status}]: ${JSON.stringify(data)}`);
+    }
+
+    // Save poll message ID mapping for webhook vote tracking
+    if (effectiveContentType === "poll" && broadcastId && data.messageId) {
+      const serviceSupabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      await serviceSupabase.from("broadcast_poll_messages").insert({
+        broadcast_id: broadcastId,
+        group_phone: targetPhone,
+        zapi_message_id: data.messageId,
+      });
     }
 
     return new Response(JSON.stringify({ success: true, ...data }), {

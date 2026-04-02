@@ -233,6 +233,7 @@ const BroadcastPage = () => {
             if (effectiveContentType === "poll") {
               invokeBody.pollOptions = pollOptions.filter((o) => o.trim());
               if (pollMaxOptions >= 1) invokeBody.pollMaxOptions = pollMaxOptions;
+              invokeBody.broadcastId = broadcast.id;
             }
 
             const { error } = await supabase.functions.invoke("zapi-send", {
