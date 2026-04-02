@@ -444,10 +444,18 @@ const BroadcastPage = () => {
                 ))}
               </div>
 
-              {/* Image attachment */}
-              {previewUrl ? (
+              {/* Media attachment */}
+              {previewUrl || mediaUrl ? (
                 <div className="relative inline-block">
-                  <img src={previewUrl} alt="Anexo" className="h-32 rounded-lg object-cover border border-border" />
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Anexo" className="h-32 rounded-lg object-cover border border-border" />
+                  ) : (
+                    <div className="h-32 rounded-lg border border-border bg-secondary/50 flex items-center justify-center px-6">
+                      <p className="text-sm text-muted-foreground">
+                        {contentType === "video" ? "🎬 Vídeo anexado" : "📄 PDF anexado"}
+                      </p>
+                    </div>
+                  )}
                   <button
                     onClick={removeMedia}
                     className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:bg-destructive/80"
@@ -455,12 +463,12 @@ const BroadcastPage = () => {
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
-              ) : (
+              ) : contentType !== "poll" && contentType !== "link" && contentType !== "catalog" ? (
                 <div>
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept={getAcceptTypes()}
                     className="hidden"
                     onChange={handleFileUpload}
                   />
@@ -476,10 +484,10 @@ const BroadcastPage = () => {
                     ) : (
                       <Upload className="h-4 w-4 mr-2" />
                     )}
-                    {uploading ? "Enviando..." : "Anexar Imagem"}
+                    {uploading ? "Enviando..." : `Anexar ${getMediaLabel()}`}
                   </Button>
                 </div>
-              )}
+              ) : null}
 
               <Textarea
                 placeholder={contentType === "poll" ? "Digite a pergunta da enquete..." : `Digite sua mensagem...\n\nVariáveis disponíveis: {nome_grupo}, {categoria}, {data}`}
