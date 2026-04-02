@@ -76,16 +76,40 @@ const BroadcastPage = () => {
     }
   }, []);
 
+  const getAcceptTypes = () => {
+    if (contentType === "video") return "video/mp4,video/3gpp,video/quicktime";
+    if (contentType === "pdf") return "application/pdf";
+    return "image/jpeg,image/png,image/gif,image/webp";
+  };
+
+  const getMaxSize = () => {
+    if (contentType === "video") return 16 * 1024 * 1024; // 16MB
+    if (contentType === "pdf") return 10 * 1024 * 1024;
+    return 10 * 1024 * 1024;
+  };
+
+  const getMediaLabel = () => {
+    if (contentType === "video") return "Vídeo";
+    if (contentType === "pdf") return "PDF";
+    return "Imagem";
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Selecione um arquivo de imagem");
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+    const isPdf = file.type === "application/pdf";
+
+    if (!isImage && !isVideo && !isPdf) {
+      toast.error("Formato não suportado. Use imagem, vídeo ou PDF.");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Imagem deve ter no máximo 10MB");
+
+    const maxSize = getMaxSize();
+    if (file.size > maxSize) {
+      toast.error(`Arquivo deve ter no máximo ${Math.round(maxSize / 1024 / 1024)}MB`);
       return;
     }
 
@@ -98,18 +122,21 @@ const BroadcastPage = () => {
         .upload(fileName, file, { contentType: file.type });
       if (error) throw error;
 
-      // Use signed URL instead of public URL (bucket is private)
       const { data: signedData, error: signedError } = await supabase.storage
         .from("broadcast-media")
-        .createSignedUrl(fileName, 3600); // 1 hour expiry
+        .createSignedUrl(fileName, 3600);
       if (signedError) throw signedError;
 
       setMediaUrl(signedData.signedUrl);
-      setPreviewUrl(URL.createObjectURL(file));
-      setContentType("image");
-      toast.success("Imagem enviada!");
+      setPreviewUrl(isImage ? URL.createObjectURL(file) : "");
+
+      if (isVideo) setContentType("video");
+      else if (isPdf) setContentType("pdf");
+      else setContentType("image");
+
+      toast.success(`${isVideo ? "Vídeo" : isPdf ? "PDF" : "Imagem"} enviado!`);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao enviar imagem");
+      toast.error(err instanceof Error ? err.message : "Erro ao enviar arquivo");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -417,10 +444,18 @@ const BroadcastPage = () => {
                 ))}
               </div>
 
-              {/* Image attachment */}
-              {previewUrl ? (
+              {/* Media attachment */}
+              {previewUrl || mediaUrl ? (
                 <div className="relative inline-block">
-                  <img src={previewUrl} alt="Anexo" className="h-32 rounded-lg object-cover border border-border" />
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Anexo" className="h-32 rounded-lg object-cover border border-border" />
+                  ) : (
+                    <div className="h-32 rounded-lg border border-border bg-secondary/50 flex items-center justify-center px-6">
+                      <p className="text-sm text-muted-foreground">
+                        {contentType === "video" ? "🎬 Vídeo anexado" : "📄 PDF anexado"}
+                      </p>
+                    </div>
+                  )}
                   <button
                     onClick={removeMedia}
                     className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:bg-destructive/80"
@@ -428,12 +463,12 @@ const BroadcastPage = () => {
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
-              ) : (
+              ) : contentType !== "poll" && contentType !== "link" && contentType !== "catalog" ? (
                 <div>
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept={getAcceptTypes()}
                     className="hidden"
                     onChange={handleFileUpload}
                   />
@@ -449,10 +484,10 @@ const BroadcastPage = () => {
                     ) : (
                       <Upload className="h-4 w-4 mr-2" />
                     )}
-                    {uploading ? "Enviando..." : "Anexar Imagem"}
+                    {uploading ? "Enviando..." : `Anexar ${getMediaLabel()}`}
                   </Button>
                 </div>
-              )}
+              ) : null}
 
               <Textarea
                 placeholder={contentType === "poll" ? "Digite a pergunta da enquete..." : `Digite sua mensagem...\n\nVariáveis disponíveis: {nome_grupo}, {categoria}, {data}`}
