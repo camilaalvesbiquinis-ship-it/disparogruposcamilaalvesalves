@@ -83,7 +83,7 @@ const BroadcastPage = () => {
   };
 
   const getMaxSize = () => {
-    if (contentType === "video") return 64 * 1024 * 1024; // 64MB
+    if (contentType === "video") return 30 * 1024 * 1024; // 30MB
     if (contentType === "pdf") return 20 * 1024 * 1024;
     return 10 * 1024 * 1024;
   };
