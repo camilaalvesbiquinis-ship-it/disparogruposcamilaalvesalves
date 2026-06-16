@@ -6,14 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
-interface PollVote {
-  id: string;
+interface PollAggregate {
   broadcast_id: string;
-  group_phone: string;
-  voter_phone: string;
   option_name: string;
-  poll_message_id: string;
-  created_at: string;
+  vote_count: number;
+  unique_voters: number;
 }
 
 interface BroadcastWithVotes {
@@ -22,38 +19,37 @@ interface BroadcastWithVotes {
   content: string | null;
   created_at: string;
   total_groups: number;
-  votes: PollVote[];
+  options: { name: string; count: number }[];
+  uniqueVoters: number;
+  totalVotes: number;
 }
 
 const PollResultsPage = () => {
   const navigate = useNavigate();
 
-  // Fetch poll broadcasts with votes
   const { data: pollBroadcasts = [], isLoading } = useQuery({
     queryKey: ["poll-results"],
     queryFn: async () => {
-      // Get poll broadcasts
       const { data: broadcasts, error: bErr } = await supabase
         .from("broadcasts")
         .select("*")
         .eq("content_type", "poll")
         .order("created_at", { ascending: false });
       if (bErr) throw bErr;
-
       if (!broadcasts || broadcasts.length === 0) return [];
 
-      // Get all votes for these broadcasts
-      const broadcastIds = broadcasts.map((b) => b.id);
-      const { data: votes, error: vErr } = await supabase
-        .from("poll_votes")
-        .select("*")
-        .in("broadcast_id", broadcastIds);
+      const { data: agg, error: vErr } = await supabase.rpc("get_poll_results");
       if (vErr) throw vErr;
 
-      return broadcasts.map((b) => ({
-        ...b,
-        votes: (votes || []).filter((v: PollVote) => v.broadcast_id === b.id),
-      })) as BroadcastWithVotes[];
+      const aggregates = (agg || []) as PollAggregate[];
+
+      return broadcasts.map((b) => {
+        const rows = aggregates.filter((a) => a.broadcast_id === b.id);
+        const options = rows.map((r) => ({ name: r.option_name, count: Number(r.vote_count) }));
+        const totalVotes = options.reduce((s, o) => s + o.count, 0);
+        const uniqueVoters = rows[0] ? Number(rows[0].unique_voters) : 0;
+        return { ...b, options, totalVotes, uniqueVoters } as BroadcastWithVotes;
+      });
     },
   });
 
