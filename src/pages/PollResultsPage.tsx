@@ -131,7 +131,7 @@ function PollCard({ broadcast }: { broadcast: BroadcastWithVotes }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {sortedOptions.map(([option, count], i) => {
+          {sortedOptions.map(({ name: option, count }, i) => {
             const pct = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
             const isWinner = count === maxVotes;
             return (
