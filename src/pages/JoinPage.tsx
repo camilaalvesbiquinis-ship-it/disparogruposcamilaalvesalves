@@ -8,17 +8,12 @@ const JoinPage = () => {
   useEffect(() => {
     const findGroup = async () => {
       try {
-        const { data: groups, error } = await supabase
-          .from("groups")
-          .select("id, name, invite_link, member_count, max_members")
-          .eq("is_active", true)
-          .not("invite_link", "is", null)
-          .order("member_count", { ascending: true });
+        const { data: groups, error } = await supabase.rpc("get_join_groups");
 
         if (error) throw error;
 
         const available = (groups || []).find(
-          (g: any) => g.member_count < (g.max_members || 1000)
+          (g: any) => (g.member_count ?? 0) < (g.max_members || 1000)
         );
 
         if (available?.invite_link) {
