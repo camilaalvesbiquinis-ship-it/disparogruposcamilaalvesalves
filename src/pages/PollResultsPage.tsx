@@ -95,18 +95,9 @@ const PollResultsPage = () => {
 };
 
 function PollCard({ broadcast }: { broadcast: BroadcastWithVotes }) {
-  const votes = broadcast.votes;
-  const uniqueVoters = new Set(votes.map((v) => v.voter_phone)).size;
-
-  // Aggregate votes per option
-  const optionCounts: Record<string, number> = {};
-  votes.forEach((v) => {
-    optionCounts[v.option_name] = (optionCounts[v.option_name] || 0) + 1;
-  });
-
-  const totalVotes = Object.values(optionCounts).reduce((a, b) => a + b, 0);
-  const sortedOptions = Object.entries(optionCounts).sort(([, a], [, b]) => b - a);
-  const maxVotes = sortedOptions.length > 0 ? sortedOptions[0][1] : 0;
+  const { options, uniqueVoters, totalVotes } = broadcast;
+  const sortedOptions = [...options].sort((a, b) => b.count - a.count);
+  const maxVotes = sortedOptions.length > 0 ? sortedOptions[0].count : 0;
 
   return (
     <div className="card-glow rounded-xl p-5 space-y-4">
