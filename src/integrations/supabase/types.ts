@@ -501,6 +501,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_join_groups: {
+        Args: never
+        Returns: {
+          id: string
+          invite_link: string
+          max_members: number
+          member_count: number
+          name: string
+        }[]
+      }
+      get_poll_results: {
+        Args: never
+        Returns: {
+          broadcast_id: string
+          option_name: string
+          unique_voters: number
+          vote_count: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
