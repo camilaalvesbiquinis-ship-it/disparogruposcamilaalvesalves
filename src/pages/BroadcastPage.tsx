@@ -265,8 +265,19 @@ const BroadcastPage = () => {
               invokeBody.broadcastId = broadcast.id;
             }
 
+            // Ensure fresh access token (refresh if near expiry) to avoid 401 mid-broadcast
+            const { data: sessionData } = await supabase.auth.getSession();
+            let accessToken = sessionData.session?.access_token;
+            const expiresAt = sessionData.session?.expires_at ?? 0;
+            const nowSec = Math.floor(Date.now() / 1000);
+            if (!accessToken || expiresAt - nowSec < 60) {
+              const { data: refreshed } = await supabase.auth.refreshSession();
+              accessToken = refreshed.session?.access_token ?? accessToken;
+            }
+
             const { error } = await supabase.functions.invoke("zapi-send", {
               body: invokeBody,
+              headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
             });
 
           if (error) throw error;
